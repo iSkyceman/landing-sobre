@@ -30,7 +30,7 @@ const icons = [
 const benefices = [
   {
     title: "Productivité immédiate",
-    desc: "+15 % en 72h grâce à l'IA embarquée",
+    desc: "+15 % en 72h grâce à l&apos;IA embarquée",
   },
   {
     title: "Coûts maîtrisés", 
@@ -46,7 +46,7 @@ const benefices = [
   },
   {
     title: "ROI garanti",
-    desc: "ROI x3 d'ici 2030",
+    desc: "ROI x3 d&apos;ici 2030",
   },
   {
     title: "Excellence opérationnelle",
@@ -57,7 +57,6 @@ const benefices = [
 export default function BeneficesSobre() {
   return (
     <section className={styles.section}>
-      {/* Définition des gradients SVG */}
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           {gradients.map((g) => (
@@ -70,18 +69,15 @@ export default function BeneficesSobre() {
       </svg>
       
       <div className="container px-4 sm:px-6 lg:px-8">
-        {/* Titre synchronisé avec RisquesSobre */}
         <h2 className={styles.benefitTitle}>
           <FaChartLine className={styles.benefitIcon} />
-          Bénéfices Concrets & Premium
+          Bénéfices Concrets &amp; Premium
         </h2>
         
-        {/* Introduction synchronisée */}
         <p className={styles.benefitIntro}>
-          D'ici 2027, 80 % des leaders industriels auront intégré l'IA. Soyez parmi les premiers.
+          D&apos;ici 2027, 80 % des leaders industriels auront intégré l&apos;IA. Soyez parmi les premiers.
         </p>
 
-        {/* Grid synchronisée */}
         <div className={styles.grid}>
           {benefices.map((b, i) => {
             const Icon = icons[i];

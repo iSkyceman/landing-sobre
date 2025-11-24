@@ -30,6 +30,17 @@ interface FieldsType {
   tranche: string;
 }
 
+interface PrefillDataType {
+  nom?: string;
+  email?: string;
+  siren?: string;
+  secteur?: string;
+  salaries?: string;
+  adresse?: string;
+  ville?: string;
+  formeJuridique?: string;
+}
+
 const VALID_CODES: ClientType[] = [
   {
     code: "DATA2025-SOCX98",
@@ -63,17 +74,15 @@ const FORMULES = [
   { value: "250+", label: "250 salariés et +", prix: 995 },
 ];
 
-const CONTRACT_TEXT = `
-Entre les soussignés :
+// SUPPRIMÉ: const CAPITAL_ISKYCE = "1";
 
-iSkyce, Société individuelle, au capital de [Capital iSkyce] euros, dont le siège social est situé 6, rue schelmenwasen,
-immatriculée au RCS de Strasbourg sous le numéro 39273610400028, représentée par M. Michel Klein, en qualité de dirigeant,
-ci-après dénommée 'le Prestataire' ou 'iSkyce',
+const CONTRACT_TEXT = `Entre les soussignés :
+
+iSkyce, Société individuelle, au capital de [Capital iSkyce] euros, dont le siège social est situé 6, rue schelmenwasen, immatriculée au RCS de Strasbourg sous le numéro 39273610400028, représentée par M. Michel Klein, en qualité de dirigeant, ci-après dénommée 'le Prestataire' ou 'iSkyce',
 
 Et
 
-[NomEntreprise], Société [FormeJuridique], au capital de [CapitalClient] euros, dont le siège social est situé [Adresse],
-immatriculée au RCS de [Ville] sous le numéro [SIRET], représentée par [NomSignataire],
+[NomEntreprise], Société [FormeJuridique], au capital de [CapitalClient] euros, dont le siège social est situé [Adresse], immatriculée au RCS de [Ville] sous le numéro [SIRET], représentée par [NomSignataire],
 
 Coordonnées du Client : Email : [Email]
 
@@ -119,56 +128,88 @@ Obligations du Client :
 - Respecter les conditions d'utilisation de la plateforme Data+.
 
 Article 6 – Propriété Intellectuelle
-6.1. Le Client reconnaît que le service Data+, incluant le concept de jumeau numérique, le logiciel sous-jacent, les algorithmes de complétude, vérification et rafraîchissement, les bases de données,
-la documentation, et toute amélioration ou adaptation y afférent, sont et demeurent la propriété exclusive d'iSkyce ou des tiers lui ayant concédé les droits d'utilisation.
-6.2. Le présent Contrat confère au Client un droit d'accès et d'utilisation non-exclusif, non transférable et limité aux seuls Services Data+ fournis par iSkyce, pour la durée du Contrat. Ce droit d'utilisation ne saurait en aucun cas être interprété comme une cession, une licence étendue ou un transfert de propriété intellectuelle des éléments susmentionnés au bénéfice du Client.
+6.1. Le Client reconnaît que le service Data+, incluant le concept de jumeau numérique, le logiciel
+sous-jacent, les algorithmes de complétude, vérification et rafraîchissement, les bases de données,
+la documentation, et toute amélioration ou adaptation y afférent, sont et demeurent la propriété
+exclusive d'iSkyce ou des tiers lui ayant concédé les droits d'utilisation.
+6.2. Le présent Contrat confère au Client un droit d'accès et d'utilisation non-exclusif, non
+transférable et limité aux seuls Services Data+ fournis par iSkyce, pour la durée du Contrat. Ce
+droit d'utilisation ne saurait en aucun cas être interprété comme une cession, une licence étendue
+ou un transfert de propriété intellectuelle des éléments susmentionnés au bénéfice du Client.
 6.3. Le Client s'interdit formellement de reproduire, adapter, modifier, traduire, arranger, diffuser,
-décompiler, désassembler ou tenter d'accéder au code source du jumeau numérique ou de tout élément du service Data+, sauf dans les limites expressément autorisées par la loi et le présent Contrat.
-6.4. Le jumeau numérique créé et maintenu dans le cadre du Service Data+, bien qu'il reflète les données du Client, constitue une œuvre de l'esprit et une base de données dont la conception, la structure et le mécanisme de mise à jour restent la propriété exclusive d'iSkyce. Le Client n'acquiert aucun droit de propriété sur ce jumeau numérique en tant que tel.
+décompiler, désassembler ou tenter d'accéder au code source du jumeau numérique ou de tout
+élément du service Data+, sauf dans les limites expressément autorisées par la loi et le présent
+Contrat.
+6.4. Le jumeau numérique créé et maintenu dans le cadre du Service Data+, bien qu'il reflète les
+données du Client, constitue une œuvre de l'esprit et une base de données dont la conception, la
+structure et le mécanisme de mise à jour restent la propriété exclusive d'iSkyce. Le Client n'acquiert
+aucun droit de propriété sur ce jumeau numérique en tant que tel.
 
 Article 7 – Disponibilité, Maintenance et Évolution du Service
-7.1. iSkyce s'engage à assurer une disponibilité du service Data+ de 99 % sur une base annuelle, hors périodes de maintenance planifiée notifiée au Client au moins 48h à l'avance.
-7.2. iSkyce ne saurait être tenue responsable des interruptions dues à des cas de force majeure ou à des interventions nécessaires pour garantir la sécurité et la stabilité du service.
-7.3. iSkyce se réserve le droit de faire évoluer le service Data+ (fonctionnalités, sécurité, interface...) dans l'intérêt de ses clients. Toute modification substantielle sera notifiée au Client.
+7.1. iSkyce s'engage à assurer une disponibilité du service Data+ de 99 % sur une base annuelle,
+hors périodes de maintenance planifiée notifiées au Client au moins 48h à l'avance.
+7.2. iSkyce ne saurait être tenue responsable des interruptions dues à des cas de force majeure ou
+à des interventions nécessaires pour garantir la sécurité et la stabilité du service.
+7.3. iSkyce se réserve le droit de faire évoluer le service Data+ (fonctionnalités, sécurité, interface...)
+dans l'intérêt de ses clients. Toute modification substantielle sera notifiée au Client.
 
 Article 8 – Sous-traitance
-iSkyce pourra recourir à des sous-traitants pour l'exécution de tout ou partie du service, tout en demeurant responsable vis-à-vis du Client.
+iSkyce pourra recourir à des sous-traitants pour l'exécution de tout ou partie du service, tout en
+demeurant responsable vis-à-vis du Client.
 
 Article 9 – Sauvegarde et Restitution des Données
-À la demande du Client et en cas de résiliation, iSkyce restituera les données brutes fournies par le Client dans un format standard, à l'exclusion du jumeau numérique et de tout élément relevant de la propriété intellectuelle d'iSkyce.
+À la demande du Client et en cas de résiliation, iSkyce restituera les données brutes fournies par le
+Client dans un format standard, à l'exclusion du jumeau numérique et de tout élément relevant de
+la propriété intellectuelle d'iSkyce.
 
 Article 10 – Résiliation
-- Chacune des parties peut résilier le contrat à l'issue de la période initiale ou de chaque période de renouvellement, par lettre recommandée avec accusé de réception, moyennant un préavis de trente (30) jours.
-- En cas de manquement grave par l'une des parties à ses obligations contractuelles, le contrat pourra être résilié de plein droit, après mise en demeure restée sans effet pendant quinze (15) jours.
-- En cas de résiliation anticipée à l'initiative du Client hors manquement d'iSkyce, les sommes dues pour la période en cours restent exigibles.
+- Chacune des parties peut résilier le contrat à l'issue de la période initiale ou de chaque période de
+renouvellement, par lettre recommandée avec accusé de réception, moyennant un préavis de trente (30) jours.
+- En cas de manquement grave par l'une des parties à ses obligations contractuelles, le contrat
+pourra être résilié de plein droit, après mise en demeure restée sans effet pendant quinze (15) jours.
+- En cas de résiliation anticipée à l'initiative du Client hors manquement d'iSkyce, les sommes dues
+pour la période en cours restent exigibles.
 
 Article 11 – Responsabilité
-- iSkyce est tenue à une obligation de moyens pour la fourniture du service Data+. Sa responsabilité ne saurait être engagée en cas d'indisponibilité temporaire du service pour maintenance, force majeure ou mauvaise utilisation par le Client.
-- En aucun cas, la responsabilité d'iSkyce ne saurait excéder le montant total des sommes versées par le Client au titre du présent contrat sur les douze (12) derniers mois.
+- iSkyce est tenue à une obligation de moyens pour la fourniture du service Data+. Sa responsabilité
+ne saurait être engagée en cas d'indisponibilité temporaire du service pour maintenance, force
+majeure ou mauvaise utilisation par le Client.
+- En aucun cas, la responsabilité d'iSkyce ne saurait excéder le montant total des sommes versées
+par le Client au titre du présent contrat sur les douze (12) derniers mois.
 
 Article 12 – Force majeure
-Aucune des parties ne pourra être tenue responsable d'un manquement à ses obligations en cas de survenance d'un événement de force majeure, tel que défini par la jurisprudence française.
+Aucune des parties ne pourra être tenue responsable d'un manquement à ses obligations en cas
+de survenance d'un événement de force majeure, tel que défini par la jurisprudence française.
 
 Article 13 – Conformité réglementaire
-iSkyce garantit que le service Data+ est conforme à la réglementation en vigueur, notamment le RGPD. Le Client s'engage à utiliser le service dans le respect de la loi.
+iSkyce garantit que le service Data+ est conforme à la réglementation en vigueur, notamment le
+RGPD. Le Client s'engage à utiliser le service dans le respect de la loi.
 
 Article 14 – Audit et Traçabilité
-Toutes les opérations sur les données du Client sont tracées et peuvent faire l'objet d'un audit à la demande du Client, dans la limite du raisonnable.
+Toutes les opérations sur les données du Client sont tracées et peuvent faire l'objet d'un audit à la
+demande du Client, dans la limite du raisonnable.
 
 Article 15 – Non-sollicitation
-Le Client s'interdit de solliciter ou d'embaucher directement ou indirectement tout collaborateur d'iSkyce ayant participé à l'exécution du contrat, pendant la durée du contrat et un an après sa cessation.
+Le Client s'interdit de solliciter ou d'embaucher directement ou indirectement tout collaborateur
+d'iSkyce ayant participé à l'exécution du contrat, pendant la durée du contrat et un an après sa
+cessation.
 
 Article 16 – Limitation d'accès
-L'accès au service Data+ est réservé aux seuls salariés/mandataires du Client et ne peut être cédé, transféré ou mis à disposition de tiers sans accord écrit d'iSkyce.
+L'accès au service Data+ est réservé aux seuls salariés/mandataires du Client et ne peut être cédé,
+transféré ou mis à disposition de tiers sans accord écrit d'iSkyce.
 
 Article 17 – Communication et Références
-Sauf refus exprès du Client, iSkyce est autorisée à mentionner le nom et le logo du Client comme référence commerciale.
+Sauf refus exprès du Client, iSkyce est autorisée à mentionner le nom et le logo du Client comme
+référence commerciale.
 
 Article 18 – Litiges et Droit applicable
-Le présent contrat est régi par le droit français. En cas de litige, les parties s'efforceront de résoudre leur différend à l'amiable. À défaut, le litige sera porté devant le tribunal compétent du ressort du siège social d'iSkyce.
+Le présent contrat est régi par le droit français.
+En cas de litige, les parties s'efforceront de résoudre leur différend à l'amiable. À défaut, le litige
+sera porté devant le tribunal compétent du ressort du siège social d'iSkyce.
 
 Article 19 – Divers
-Toute modification du présent contrat devra faire l'objet d'un avenant écrit signé par les deux parties.
+Toute modification du présent contrat devra faire l'objet d'un avenant écrit signé par les deux
+parties.
 Les coordonnées de contact pour toute question relative au contrat sont : support@iskyce.com, iskyceman@gmail.com.
 
 Fait à [lieu], le [date]
@@ -192,44 +233,44 @@ function contratTextToHtml(rawText: string): string {
   let inList = false;
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed === "") {
-      if (inList) {
+    if(trimmed === "") {
+      if(inList){
         html += "</ul>";
-        inList = false;
+        inList=false;
       }
       continue;
     }
-    if (/^Article\s+\d+/i.test(trimmed)) {
-      if (inList) {
+    if(/^Article\s+\d+/i.test(trimmed)){
+      if(inList){
         html += "</ul>";
-        inList = false;
+        inList=false;
       }
       html += `<h4>${trimmed}</h4>`;
       continue;
     }
-    if (/:$/.test(trimmed)) {
-      if (inList) {
+    if(/:$/ .test(trimmed)){
+      if(inList){
         html += "</ul>";
-        inList = false;
+        inList=false;
       }
       html += `<p>${trimmed}</p>`;
       continue;
     }
-    if (/^-\s/.test(trimmed)) {
-      if (!inList) {
+    if(/^-\s/.test(trimmed)){
+      if(!inList){
         html += "<ul>";
-        inList = true;
+        inList=true;
       }
-      html += `<li>${trimmed.replace(/^- /, "")}</li>`;
+      html += `<li>${trimmed.replace(/^- /,"")}</li>`;
       continue;
     }
-    if (inList) {
+    if(inList){
       html += "</ul>";
-      inList = false;
+      inList=false;
     }
     html += `<p>${trimmed}</p>`;
   }
-  if (inList) html += "</ul>";
+  if(inList) html += "</ul>";
   return html;
 }
 
@@ -249,7 +290,7 @@ function CodeInputSection({
   return (
     <div className={styles.centerCodeBox}>
       <label htmlFor="code_data_plus" className={styles.codeLabel}>
-        Saisissez votre code d'accès Data+ :
+        Saisissez votre code d&apos;accès Data+ :
       </label>
       <input
         className={styles.select}
@@ -272,7 +313,7 @@ function CodeInputSection({
           }}
           className={styles.buttonBlue}
         >
-          S'abonner à Data+
+          S&apos;abonner à Data+
         </button>
       )}
     </div>
@@ -293,7 +334,6 @@ interface TunnelModalProps {
   prix: number;
   handleFormSubmit: (e: FormEvent<HTMLFormElement>) => void;
   prev: () => void;
-  next: () => void;
   contratLu: boolean;
   setContratLu: Dispatch<SetStateAction<boolean>>;
   contratMenuOpen: boolean;
@@ -325,7 +365,6 @@ function TunnelModal({
   prix,
   handleFormSubmit,
   prev,
-  next,
   contratLu,
   setContratLu,
   contratMenuOpen,
@@ -367,7 +406,7 @@ function TunnelModal({
           {step === 0 && (
             <form onSubmit={handleFormSubmit} autoComplete="off">
               <label>
-                Nom de l'entreprise
+                Nom de l&apos;entreprise
                 <input type="text" name="nomEntreprise" value={fields.nomEntreprise} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
@@ -391,30 +430,30 @@ function TunnelModal({
                 <input type="text" name="siren" value={fields.siren} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
-                Adresse - code postal - ville complet de l'entreprise
+                Adresse - code postal - ville complet de l&apos;entreprise
                 <input type="text" name="adresse" value={fields.adresse} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
-                Indiquer Ville ou est immatriculée le rcs de l'entreprise
+                Indiquer Ville ou est immatriculée le rcs de l&apos;entreprise
                 <input type="text" name="ville" value={fields.ville} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
-               Capital social déclaré
-               <input
-               type="text"
-               name="capitalSocial"
-               value={fields.capitalSocial}
-               onChange={(e) => {
-               const val = e.target.value;
-               if (/^\d*$/.test(val)) {
-               handleChange(e);
-               }
-               }}
-               required
-               className={styles.select}
-               inputMode="numeric"
-               pattern="[0-9]*"
-               />
+                Capital social déclaré
+                <input
+                  type="text"
+                  name="capitalSocial"
+                  value={fields.capitalSocial}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*$/.test(val)) {
+                      handleChange(e);
+                    }
+                  }}
+                  required
+                  className={styles.select}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
               </label>
               <label>
                 Formule Data+
@@ -441,7 +480,7 @@ function TunnelModal({
           )}
           {step === 1 && (
             <div>
-              <h4 className={styles.contractTitle}>Contrat d'abonnement Data+ Sobre</h4>
+              <h4 className={styles.contractTitle}>Contrat d&apos;abonnement Data+ Sobre</h4>
               <div className={styles.contractMenu}>
                 <button
                   className={styles.contractDropdownBtn}
@@ -467,7 +506,7 @@ function TunnelModal({
               </div>
               <label className={styles.checkboxLabel}>
                 <input type="checkbox" checked={contratLu} onChange={(e) => setContratLu(e.target.checked)} />
-                J'ai bien lu et j'accepte l'ensemble du contrat ci-dessus.
+                J&apos;ai bien lu et j&apos;accepte l&apos;ensemble du contrat ci-dessus.
               </label>
               <button className={styles.buttonBlue} disabled={!contratLu} type="button" onClick={handleContratAccept}>
                 Valider et passer au paiement
@@ -488,7 +527,7 @@ function TunnelModal({
                 </button>
               )}
               <div style={{ color: "#A66B20", marginTop: 16, fontSize: "1em" }}>
-                Référence dossier : <b>{refDossier || "[assignée à l'étape suivante]"}</b>
+                Référence dossier : <b>{refDossier || "[assignée à l&apos;étape suivante]"}</b>
               </div>
               <button style={{ marginTop: 14 }} onClick={prev} className={styles.buttonOutline} type="button">
                 ← Précédent
@@ -511,7 +550,7 @@ function TunnelModal({
                 </>
               )}
               <div className={styles.successMessage}>
-                Félicitations, votre souscription est enregistrée !
+                Félicitations, votre souscription est enregistrée&nbsp;!
               </div>
             </div>
           )}
@@ -522,7 +561,7 @@ function TunnelModal({
 }
 
 // Composant parent OptionDataPlusSobre
-export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any }) {
+export default function OptionDataPlusSobre({ prefillData }: { prefillData?: PrefillDataType }) {
   const [showInfo, setShowInfo] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(0);
@@ -559,12 +598,11 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
   const [emailSent, setEmailSent] = useState(false);
   const [contratMenuOpen, setContratMenuOpen] = useState(false);
 
-  // ✅ NOUVEAU : UTILISATION DE prefillData POUR PRÉ-REMPLIR
   useEffect(() => {
     if (prefillData) {
-      console.log('🎯 Données pré-remplies reçues pour Sobre:', prefillData);
-      
-      setFields(prev => ({
+      console.log("🎯 Données pré-remplies reçues pour Sobre:", prefillData);
+
+      setFields((prev) => ({
         ...prev,
         nomEntreprise: prefillData.nom || "",
         email: prefillData.email || "",
@@ -576,10 +614,10 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
         formeJuridique: prefillData.formeJuridique || "",
       }));
 
-      // Si on a prefillData, on considère que l'accès est accordé
+      // Si on a prefillData, on considère que l&apos;accès est accordé
       setAccessGranted(true);
       setFieldsInitialised(true);
-      
+
       // Ouvrir automatiquement la modal si données pré-remplies
       if (!showModal) {
         setTimeout(() => {
@@ -587,7 +625,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
         }, 500);
       }
     }
-  }, [prefillData]);
+  }, [prefillData, showModal]); // CORRIGÉ: ajout de showModal dans les dépendances
 
   useEffect(() => {
     if (showModal || showInfo) document.body.style.overflow = "hidden";
@@ -598,7 +636,6 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
   }, [showModal, showInfo]);
 
   useEffect(() => {
-    // ✅ MODIFIÉ : Ne pas écraser si prefillData existe déjà
     if (prefillData) return;
 
     const found = VALID_CODES.find(
@@ -629,7 +666,6 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
   }, [code, prefillData]);
 
   useEffect(() => {
-    // ✅ MODIFIÉ : Ne pas écraser si prefillData existe déjà
     if (prefillData) return;
 
     if (showModal && client && !fieldsInitialised) {
@@ -668,7 +704,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
   function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!fields.nomEntreprise.trim()) {
-      alert("Le nom de l'entreprise est obligatoire.");
+      alert("Le nom de l&apos;entreprise est obligatoire."); // CORRIGÉ: apostrophe dans JSX
       return;
     }
     if (!fields.capitalSocial || Number(fields.capitalSocial) <= 0) {
@@ -699,7 +735,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
       "[Paiement]": paiement === "annuel" ? "annuel" : "mensuel",
       "[Montant]": prix?.toString() || "[Montant]",
       "[UnitePaiement]": paiement === "annuel" ? "an" : "mois",
-      "[Capital iSkyce]": "1",
+      "[Capital iSkyce]": "1", // CORRIGÉ: valeur directe
       "[Date]": new Date().toLocaleDateString("fr-FR"),
       "[Lieu]": "Strasbourg",
       "[supportEmail]": "support@iskyce.com",
@@ -858,7 +894,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
       `);
       printWindow.document.close();
     } else {
-      alert("Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les popups pour ce site.");
+      alert("Impossible d&apos;ouvrir la fenêtre d&apos;impression. Veuillez autoriser les popups pour ce site.");
     }
   }
 
@@ -883,12 +919,12 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
           <div className={styles.modalTitle}>Abonnement Data+ Sobre</div>
           <div className={styles.modalContent}>
             <strong style={{ color: "#f76d3c" }}>
-              Data+ : l'abonnement réservé aux industriels engagés dans la transformation 5.0
+              Data+ : l&apos;abonnement réservé aux industriels engagés dans la transformation 5.0
             </strong>
             <br />
             <br />
-            Cette offre avancée s'adresse exclusivement aux clients ayant déjà bénéficié d'un Diagnostic,
-            d'une Feuille de route ou d'une Analyse IA.
+            Cette offre avancée s&apos;adresse exclusivement aux clients ayant déjà bénéficié d&apos;un Diagnostic,
+            d&apos;une Feuille de route ou d&apos;une Analyse IA.
             <br />
             <br />
             Nous créons pour vous un jumeau numérique sur-mesure, mis à jour chaque mois avec vos données réelles,
@@ -900,7 +936,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
             <br />
             <br />
             <strong style={{ color: "#f76d3c" }}>
-              Rejoignez les industriels qui anticipent, innovent et gardent une longueur d'avance.
+              Rejoignez les industriels qui anticipent, innovent et gardent une longueur d&apos;avance.
             </strong>
             <br />
             <br />
@@ -931,7 +967,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
         <button className={styles.buttonOrange} onClick={() => setShowInfo(true)}>Découvrir Data+</button>
       </div>
       <p className={styles.text}>
-        Pour garantir la pertinence et l'actualisation de vos analyses, nous proposons une formule d'abonnement mensuel.
+        Pour garantir la pertinence et l&apos;actualisation de vos analyses, nous proposons une formule d&apos;abonnement mensuel.
         <br />
         Elle inclut la complétude, la vérification et le rafraîchissement automatique de vos données chaque mois.
       </p>
@@ -965,7 +1001,6 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: any
               prix={prix}
               handleFormSubmit={handleFormSubmit}
               prev={prev}
-              next={next}
               contratLu={contratLu}
               setContratLu={setContratLu}
               contratMenuOpen={contratMenuOpen}
