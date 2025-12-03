@@ -39,32 +39,14 @@ interface PrefillDataType {
   adresse?: string;
   ville?: string;
   formeJuridique?: string;
+  code?: string;
+  clientId?: string;
+  nomEntreprise?: string;
+  prix?: number;
+  periodicite?: string;
+  formule?: string;
+  formuleLabel?: string;
 }
-
-const VALID_CODES: ClientType[] = [
-  {
-    code: "DATA2025-SOCX98",
-    nom: "Société Test",
-    email: "contact@exemple.com",
-    siren: "123456789",
-    secteur: "industrie",
-    salaries: "23",
-    adresse: "5 rue des Innovations, 67210 Obernai",
-    ville: "Obernai",
-    formeJuridique: "SARL"
-  },
-  {
-    code: "ESSAI2025-SOBRE",
-    nom: "DemoClient",
-    email: "iskyceman@gmail.com",
-    siren: "111222333",
-    secteur: "bâtiment",
-    salaries: "48",
-    adresse: "1 route de Testville, 67000 Strasbourg",
-    ville: "Strasbourg",
-    formeJuridique: "SAS"
-  },
-];
 
 const FORMULES = [
   { value: "0-15", label: "0-15 salariés", prix: 79 },
@@ -73,8 +55,6 @@ const FORMULES = [
   { value: "100-249", label: "100-249 salariés", prix: 690 },
   { value: "250+", label: "250 salariés et +", prix: 995 },
 ];
-
-// SUPPRIMÉ: const CAPITAL_ISKYCE = "1";
 
 const CONTRACT_TEXT = `Entre les soussignés :
 
@@ -204,7 +184,7 @@ référence commerciale.
 
 Article 18 – Litiges et Droit applicable
 Le présent contrat est régi par le droit français.
-En cas de litige, les parties s'efforceront de résoudre leur différend à l'amiable. À défaut, le litige
+En cas de litige, les parties s'efforcerent de résoudre leur différend à l'amiable. À défaut, le litige
 sera porté devant le tribunal compétent du ressort du siège social d'iSkyce.
 
 Article 19 – Divers
@@ -274,23 +254,110 @@ function contratTextToHtml(rawText: string): string {
   return html;
 }
 
+// Fonction pour vérifier le code avec le backend
+const verifyDataPlusCode = async (code: string, clientId?: string) => {
+  try {
+    console.log('🔍 Vérification code Data+:', code);
+    
+    // MODIFIE CETTE URL SELON TON ENVIRONNEMENT
+    // Pour Vercel : https://industrie5-node-backend.vercel.app/api/dataplus/verify-code
+    // Pour local : http://localhost:5000/api/dataplus/verify-code
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://industrie5-node-backend.vercel.app';
+    
+    const params = new URLSearchParams();
+    params.append('code', code);
+    if (clientId) {
+      params.append('client', clientId);
+    }
+    
+    const response = await fetch(`${backendUrl}/api/dataplus/verify-code?${params.toString()}`);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Réponse backend:', data);
+      return {
+        success: data.success,
+        clientName: data.clientName,
+        clientId: data.clientId,
+        testMode: data.testMode || false,
+        prix: data.prix,
+        formule: data.formule,
+        periodicite: data.periodicite
+      };
+    }
+    
+    console.error('❌ Erreur réponse backend:', response.status);
+    return { success: false, clientName: null, clientId: null, testMode: false };
+    
+  } catch (error) {
+    console.error('❌ Erreur vérification code:', error);
+    return { success: false, clientName: null, clientId: null, testMode: false };
+  }
+};
+
+// Fonction pour extraire les données de l'URL
+const extractPrefillDataFromUrl = () => {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedData = urlParams.get('data');
+    
+    if (encodedData) {
+      // Décoder base64 puis URL decode
+      const decodedData = decodeURIComponent(atob(encodedData));
+      return JSON.parse(decodedData);
+    }
+  } catch (error) {
+    console.error('❌ Erreur extraction données URL:', error);
+  }
+  return null;
+};
+
 function CodeInputSection({
   code,
   setCode,
   accessGranted,
   setFieldsInitialised,
   setShowModal,
+  prefillData,
 }: {
   code: string;
   setCode: Dispatch<SetStateAction<string>>;
   accessGranted: boolean;
   setFieldsInitialised: Dispatch<SetStateAction<boolean>>;
   setShowModal: Dispatch<SetStateAction<boolean>>;
+  prefillData?: PrefillDataType;
 }) {
+  
+  // Si prefillData existe, on masque la saisie manuelle
+  if (prefillData) {
+    return (
+      <div className={styles.centerCodeBox}>
+        <div className={styles.codeLabel}>
+          ✅ Code Data+ pré-rempli détecté
+        </div>
+        <div className={styles.prefillInfo}>
+          <p>Client: <strong>{prefillData.nom || prefillData.nomEntreprise || 'Client'}</strong></p>
+          <p>Code: <strong>{prefillData.code || 'Généré automatiquement'}</strong></p>
+          <button
+            type="button"
+            onClick={() => {
+              setFieldsInitialised(false);
+              setShowModal(true);
+            }}
+            className={styles.buttonBlue}
+            style={{ marginTop: '15px' }}
+          >
+            🚀 Accéder à la souscription
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className={styles.centerCodeBox}>
       <label htmlFor="code_data_plus" className={styles.codeLabel}>
-        Saisissez votre code d&apos;accès Data+ :
+        Saisissez votre code d'accès Data+ :
       </label>
       <input
         className={styles.select}
@@ -298,11 +365,11 @@ function CodeInputSection({
         id="code_data_plus"
         value={code}
         onChange={(e) => setCode(e.target.value)}
-        placeholder="EX: ESSAI2025-SOBRE"
+        placeholder="EX: DATAPLUS-DATAPLUS-XXXXX"
       />
       <div className={styles.codeMessage}>
         {code.length === 0 && "Un code est requis pour souscrire."}
-        {code.length > 3 && !accessGranted && "Code invalide ou expiré."}
+        {code.length > 3 && !accessGranted && "Code invalide ou expiré. Vérifiez votre code."}
       </div>
       {accessGranted && (
         <button
@@ -313,7 +380,7 @@ function CodeInputSection({
           }}
           className={styles.buttonBlue}
         >
-          S&apos;abonner à Data+
+          S'abonner à Data+
         </button>
       )}
     </div>
@@ -406,7 +473,7 @@ function TunnelModal({
           {step === 0 && (
             <form onSubmit={handleFormSubmit} autoComplete="off">
               <label>
-                Nom de l&apos;entreprise
+                Nom de l'entreprise
                 <input type="text" name="nomEntreprise" value={fields.nomEntreprise} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
@@ -430,11 +497,11 @@ function TunnelModal({
                 <input type="text" name="siren" value={fields.siren} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
-                Adresse - code postal - ville complet de l&apos;entreprise
+                Adresse - code postal - ville complet de l'entreprise
                 <input type="text" name="adresse" value={fields.adresse} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
-                Indiquer Ville ou est immatriculée le rcs de l&apos;entreprise
+                Indiquer Ville ou est immatriculée le rcs de l'entreprise
                 <input type="text" name="ville" value={fields.ville} onChange={handleChange} required className={styles.select} />
               </label>
               <label>
@@ -480,7 +547,7 @@ function TunnelModal({
           )}
           {step === 1 && (
             <div>
-              <h4 className={styles.contractTitle}>Contrat d&apos;abonnement Data+ Sobre</h4>
+              <h4 className={styles.contractTitle}>Contrat d'abonnement Data+ Sobre</h4>
               <div className={styles.contractMenu}>
                 <button
                   className={styles.contractDropdownBtn}
@@ -506,7 +573,7 @@ function TunnelModal({
               </div>
               <label className={styles.checkboxLabel}>
                 <input type="checkbox" checked={contratLu} onChange={(e) => setContratLu(e.target.checked)} />
-                J&apos;ai bien lu et j&apos;accepte l&apos;ensemble du contrat ci-dessus.
+                J'ai bien lu et j'accepte l'ensemble du contrat ci-dessus.
               </label>
               <button className={styles.buttonBlue} disabled={!contratLu} type="button" onClick={handleContratAccept}>
                 Valider et passer au paiement
@@ -527,7 +594,7 @@ function TunnelModal({
                 </button>
               )}
               <div style={{ color: "#A66B20", marginTop: 16, fontSize: "1em" }}>
-                Référence dossier : <b>{refDossier || "[assignée à l&apos;étape suivante]"}</b>
+                Référence dossier : <b>{refDossier || "[assignée à l'étape suivante]"}</b>
               </div>
               <button style={{ marginTop: 14 }} onClick={prev} className={styles.buttonOutline} type="button">
                 ← Précédent
@@ -550,7 +617,7 @@ function TunnelModal({
                 </>
               )}
               <div className={styles.successMessage}>
-                Félicitations, votre souscription est enregistrée&nbsp;!
+                Félicitations, votre souscription est enregistrée !
               </div>
             </div>
           )}
@@ -561,7 +628,7 @@ function TunnelModal({
 }
 
 // Composant parent OptionDataPlusSobre
-export default function OptionDataPlusSobre({ prefillData }: { prefillData?: PrefillDataType }) {
+export default function OptionDataPlusSobre({ prefillData: externalPrefillData }: { prefillData?: PrefillDataType }) {
   const [showInfo, setShowInfo] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(0);
@@ -597,36 +664,144 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
   const [showSimuStripe, setShowSimuStripe] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [contratMenuOpen, setContratMenuOpen] = useState(false);
+  
+  // État pour les données pré-remplies
+  const [prefillData, setPrefillData] = useState<PrefillDataType | null>(
+    externalPrefillData || null
+  );
 
+  // ÉTAPE 1 : Extraire les données de l'URL au chargement
   useEffect(() => {
-    if (prefillData) {
-      console.log("🎯 Données pré-remplies reçues pour Sobre:", prefillData);
+    // Si on a déjà des données externes, on les utilise
+    if (externalPrefillData) {
+      console.log("🎯 Données externes reçues:", externalPrefillData);
+      setPrefillData(externalPrefillData);
+      return;
+    }
 
-      setFields((prev) => ({
-        ...prev,
-        nomEntreprise: prefillData.nom || "",
-        email: prefillData.email || "",
-        siren: prefillData.siren || "",
-        secteur: prefillData.secteur || "",
-        salaries: prefillData.salaries || "",
-        adresse: prefillData.adresse || "",
-        ville: prefillData.ville || "",
-        formeJuridique: prefillData.formeJuridique || "",
-      }));
-
-      // Si on a prefillData, on considère que l&apos;accès est accordé
-      setAccessGranted(true);
-      setFieldsInitialised(true);
-
-      // Ouvrir automatiquement la modal si données pré-remplies
-      if (!showModal) {
-        setTimeout(() => {
-          setShowModal(true);
-        }, 500);
+    // Sinon, on extrait de l'URL
+    const urlData = extractPrefillDataFromUrl();
+    if (urlData) {
+      console.log("🌐 Données extraites de l'URL:", urlData);
+      setPrefillData(urlData);
+      
+      // Extraire le code de l'URL aussi
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCode = urlParams.get('code');
+      if (urlCode) {
+        setCode(urlCode);
       }
     }
-  }, [prefillData, showModal]); // CORRIGÉ: ajout de showModal dans les dépendances
+  }, [externalPrefillData]);
 
+  // ÉTAPE 2 : Pré-remplir les champs avec prefillData
+  useEffect(() => {
+    if (prefillData) {
+      console.log("🎯 Pré-remplissage avec données:", prefillData);
+      
+      const newFields: Partial<FieldsType> = {};
+      
+      // Mapper les données
+      if (prefillData.nom || prefillData.nomEntreprise) {
+        newFields.nomEntreprise = prefillData.nom || prefillData.nomEntreprise || '';
+        newFields.nom = prefillData.nom || prefillData.nomEntreprise || '';
+      }
+      
+      if (prefillData.email) newFields.email = prefillData.email;
+      if (prefillData.siren) newFields.siren = prefillData.siren;
+      if (prefillData.secteur) newFields.secteur = prefillData.secteur;
+      if (prefillData.salaries) newFields.salaries = prefillData.salaries;
+      if (prefillData.adresse) newFields.adresse = prefillData.adresse;
+      if (prefillData.ville) newFields.ville = prefillData.ville;
+      if (prefillData.formeJuridique) newFields.formeJuridique = prefillData.formeJuridique;
+      
+      // Si on a une formule dans prefillData, la sélectionner
+      if (prefillData.formule) {
+        setFormule(prefillData.formule);
+      }
+      
+      // Si on a une périodicité dans prefillData, la sélectionner
+      if (prefillData.periodicite) {
+        setPaiement(prefillData.periodicite === 'annuel' ? 'annuel' : 'mensuel');
+      }
+      
+      setFields(prev => ({ ...prev, ...newFields }));
+      
+      // Accès automatiquement accordé avec prefillData
+      setAccessGranted(true);
+      setFieldsInitialised(true);
+      
+      console.log("✅ Champs pré-remplis:", newFields);
+    }
+  }, [prefillData]);
+
+  // ÉTAPE 3 : Vérifier le code si pas de prefillData
+  useEffect(() => {
+    // Si on a prefillData, on skip la vérification manuelle
+    if (prefillData) return;
+
+    const checkCode = async () => {
+      if (!code.trim()) {
+        setAccessGranted(false);
+        setClient(null);
+        return;
+      }
+
+      console.log("🔍 Vérification du code:", code);
+      
+      // Extraire clientId de l'URL si présent
+      const urlParams = new URLSearchParams(window.location.search);
+      const clientId = urlParams.get('client');
+
+      // Vérifier le code avec le backend
+      const result = await verifyDataPlusCode(code, clientId || undefined);
+
+      if (result.success) {
+        console.log("✅ Code valide:", result);
+        setAccessGranted(true);
+        
+        // Mettre à jour les champs avec les infos du backend
+        if (result.clientName) {
+          setFields(prev => ({
+            ...prev,
+            nomEntreprise: result.clientName || prev.nomEntreprise,
+            nom: result.clientName || prev.nom
+          }));
+        }
+        
+        // Si le backend retourne des infos supplémentaires
+        if (result.prix || result.formule || result.periodicite) {
+          if (result.formule) setFormule(result.formule);
+          if (result.periodicite) setPaiement(result.periodicite === 'annuel' ? 'annuel' : 'mensuel');
+        }
+      } else {
+        console.log("❌ Code invalide");
+        setAccessGranted(false);
+        setClient(null);
+        setFields({
+          nomEntreprise: "",
+          nom: "",
+          fonction: "",
+          email: "",
+          siren: "",
+          secteur: "",
+          salaries: "",
+          adresse: "",
+          ville: "",
+          capitalSocial: "",
+          formeJuridique: "",
+          tranche: "",
+        });
+        setFieldsInitialised(false);
+      }
+    };
+
+    // Délai pour éviter trop d'appels
+    const timeoutId = setTimeout(checkCode, 500);
+    return () => clearTimeout(timeoutId);
+  }, [code, prefillData]);
+
+  // Gestion du scroll
   useEffect(() => {
     if (showModal || showInfo) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
@@ -635,57 +810,16 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
     };
   }, [showModal, showInfo]);
 
+  // Initialiser les champs quand la modal s'ouvre
   useEffect(() => {
-    if (prefillData) return;
-
-    const found = VALID_CODES.find(
-      (c) => c.code.trim().toLowerCase() === code.trim().toLowerCase()
-    );
-    if (found) {
-      setAccessGranted(true);
-      setClient(found);
-    } else {
-      setAccessGranted(false);
-      setClient(null);
-      setFields({
-        nomEntreprise: "",
-        nom: "",
-        fonction: "",
-        email: "",
-        siren: "",
-        secteur: "",
-        salaries: "",
-        adresse: "",
-        ville: "",
-        capitalSocial: "",
-        formeJuridique: "",
-        tranche: "",
-      });
-      setFieldsInitialised(false);
-    }
-  }, [code, prefillData]);
-
-  useEffect(() => {
-    if (prefillData) return;
-
-    if (showModal && client && !fieldsInitialised) {
-      setFields({
-        nomEntreprise: client.nom || "",
-        nom: "",
-        fonction: "",
-        email: client.email || "",
-        siren: client.siren || "",
-        secteur: client.secteur || "",
-        salaries: client.salaries || "",
-        adresse: client.adresse || "",
-        ville: client.ville || "",
-        capitalSocial: "",
-        formeJuridique: client.formeJuridique || "",
-        tranche: "",
-      });
+    if (showModal && accessGranted && !fieldsInitialised) {
+      console.log("📝 Initialisation des champs dans la modal");
       setFieldsInitialised(true);
+      
+      // Si prefillData existe, on pré-remplit déjà (fait dans l'autre useEffect)
+      // Sinon, on garde ce qu'on a
     }
-  }, [showModal, client, fieldsInitialised, prefillData]);
+  }, [showModal, accessGranted, fieldsInitialised]);
 
   const prixBase = FORMULES.find((f) => f.value === formule)?.prix || 0;
   const prix = paiement === "annuel" ? Math.round(prixBase * 12 * 0.9) : prixBase;
@@ -704,7 +838,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
   function handleFormSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!fields.nomEntreprise.trim()) {
-      alert("Le nom de l&apos;entreprise est obligatoire."); // CORRIGÉ: apostrophe dans JSX
+      alert("Le nom de l'entreprise est obligatoire.");
       return;
     }
     if (!fields.capitalSocial || Number(fields.capitalSocial) <= 0) {
@@ -735,7 +869,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
       "[Paiement]": paiement === "annuel" ? "annuel" : "mensuel",
       "[Montant]": prix?.toString() || "[Montant]",
       "[UnitePaiement]": paiement === "annuel" ? "an" : "mois",
-      "[Capital iSkyce]": "1", // CORRIGÉ: valeur directe
+      "[Capital iSkyce]": "1",
       "[Date]": new Date().toLocaleDateString("fr-FR"),
       "[Lieu]": "Strasbourg",
       "[supportEmail]": "support@iskyce.com",
@@ -831,10 +965,11 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
         formule: FORMULES.find((f) => f.value === formule)?.label,
         paiement,
         prix,
-        codeClient: code,
+        codeClient: code || prefillData?.code || "DATAPLUS-" + Date.now(),
         contrat: buildContractHtml(),
         date: new Date().toISOString(),
         provenance: "abosDataPlusSobre",
+        prefillData: prefillData || null,
       };
       const stored = localStorage.getItem("dossiers");
       const data = stored ? JSON.parse(stored) : [];
@@ -894,7 +1029,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
       `);
       printWindow.document.close();
     } else {
-      alert("Impossible d&apos;ouvrir la fenêtre d&apos;impression. Veuillez autoriser les popups pour ce site.");
+      alert("Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les popups pour ce site.");
     }
   }
 
@@ -919,12 +1054,12 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
           <div className={styles.modalTitle}>Abonnement Data+ Sobre</div>
           <div className={styles.modalContent}>
             <strong style={{ color: "#f76d3c" }}>
-              Data+ : l&apos;abonnement réservé aux industriels engagés dans la transformation 5.0
+              Data+ : l'abonnement réservé aux industriels engagés dans la transformation 5.0
             </strong>
             <br />
             <br />
-            Cette offre avancée s&apos;adresse exclusivement aux clients ayant déjà bénéficié d&apos;un Diagnostic,
-            d&apos;une Feuille de route ou d&apos;une Analyse IA.
+            Cette offre avancée s'adresse exclusivement aux clients ayant déjà bénéficié d'un Diagnostic,
+            d'une Feuille de route ou d'une Analyse IA.
             <br />
             <br />
             Nous créons pour vous un jumeau numérique sur-mesure, mis à jour chaque mois avec vos données réelles,
@@ -936,7 +1071,7 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
             <br />
             <br />
             <strong style={{ color: "#f76d3c" }}>
-              Rejoignez les industriels qui anticipent, innovent et gardent une longueur d&apos;avance.
+              Rejoignez les industriels qui anticipent, innovent et gardent une longueur d'avance.
             </strong>
             <br />
             <br />
@@ -967,13 +1102,14 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
         <button className={styles.buttonOrange} onClick={() => setShowInfo(true)}>Découvrir Data+</button>
       </div>
       <p className={styles.text}>
-        Pour garantir la pertinence et l&apos;actualisation de vos analyses, nous proposons une formule d&apos;abonnement mensuel.
+        Pour garantir la pertinence et l'actualisation de vos analyses, nous proposons une formule d'abonnement mensuel.
         <br />
         Elle inclut la complétude, la vérification et le rafraîchissement automatique de vos données chaque mois.
       </p>
       <div className={styles.noteLeft}>
         Accès réservé : code requis (fourni après un diagnostic, feuille ou analyse IA).
       </div>
+      
       {!showModal && !showInfo && (
         <CodeInputSection
           code={code}
@@ -981,9 +1117,12 @@ export default function OptionDataPlusSobre({ prefillData }: { prefillData?: Pre
           accessGranted={accessGranted}
           setFieldsInitialised={setFieldsInitialised}
           setShowModal={setShowModal}
+          prefillData={prefillData || undefined}
         />
       )}
+      
       {showInfo && !showModal && <DiscoverModal />}
+      
       {showModal && (
         <div className={styles.tunnelModalOverlay}>
           <div className={styles.tunnelModal}>

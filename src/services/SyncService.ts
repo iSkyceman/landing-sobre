@@ -1,8 +1,24 @@
-// src/services/SyncService.ts - VERSION CORRIGÉE POUR DATAPLUS
+// src/services/SyncService.ts - VERSION CORRIGÉE POUR PRODUCTION
 import type { Dossier } from '../types/dossier';
 
-// URL de ton API principale - CORRIGÉE
-const API_BASE_URL = 'http://localhost:5000/api'; // Ton backend sur port 5000
+// ✅ CORRECTION : URL conditionnelle pour production/développement
+const getApiBaseUrl = (): string => {
+  // Si on est côté client (browser)
+  if (typeof window !== 'undefined') {
+    // En production sur Vercel
+    if (window.location.hostname.includes('vercel.app')) {
+      return ''; // Désactivé en production
+    }
+    // En développement local
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000/api';
+    }
+  }
+  // Par défaut, désactivé
+  return '';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface ClientData {
   dossierNumber: string;
@@ -36,7 +52,7 @@ function transformDossierToClient(dossier: Dossier): ClientData {
     date: dossier.date,
     sujets: dossier.sujets ? Object.values(dossier.sujets).filter(s => s) : [],
     observation: dossier.observation,
-    contrat: isDataPlus, // ✅ TRUE pour Data+, false pour les autres
+    contrat: isDataPlus,
     provenance: dossier.provenance || 'Landing Page'
   };
 }
@@ -44,9 +60,15 @@ function transformDossierToClient(dossier: Dossier): ClientData {
 // Fonction pour envoyer les données vers l'API principale - CORRIGÉE
 export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
   try {
+    // ✅ CORRECTION : Vérification si l'API est disponible
+    if (!API_BASE_URL) {
+      console.log('🔒 Synchronisation désactivée (production ou API non disponible)');
+      return false;
+    }
+    
     const clientData = transformDossierToClient(dossier);
     
-    // ✅ CORRECTION : Validation adaptée pour Data+
+    // Validation adaptée pour Data+
     if (!clientData.dossierNumber || !clientData.username || !clientData.email) {
       console.error('❌ Champs requis manquants pour:', clientData.dossierNumber);
       return false;
@@ -77,14 +99,21 @@ export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
   }
 }
 
-// Fonction pour synchroniser tous les dossiers existants
-export async function syncAllDossiers(): Promise<void> {
+// Fonction pour synchroniser tous les dossiers existants - CORRIGÉE
+export async function syncAllDossiers(): Promise<{success: boolean; count: number; message: string}> {
   try {
+    // ✅ CORRECTION : Vérification préalable
+    if (!API_BASE_URL) {
+      const message = '🔒 Synchronisation désactivée en production - Fonctionne uniquement en développement local';
+      console.log(message);
+      return { success: false, count: 0, message };
+    }
+    
     // Récupère tous les dossiers du localStorage
     const saved = localStorage.getItem("dossiers");
     if (!saved) {
       console.log('ℹ️ Aucun dossier à synchroniser');
-      return;
+      return { success: true, count: 0, message: 'Aucun dossier à synchroniser' };
     }
 
     const dossiers: Dossier[] = JSON.parse(saved);
@@ -94,7 +123,7 @@ export async function syncAllDossiers(): Promise<void> {
     console.log(`🔄 Début synchronisation de ${dossiers.length} dossiers...`);
 
     for (const dossier of dossiers) {
-      // ✅ CORRECTION : Log spécial pour Data+
+      // Log spécial pour Data+
       const isDataPlus = dossier.reference.includes('DATAPLUS');
       if (isDataPlus) {
         console.log(`📊 Traitement Data+ spécial: ${dossier.reference}`);
@@ -112,16 +141,30 @@ export async function syncAllDossiers(): Promise<void> {
     console.log(`📊 Dont ${dataPlusCount} abonnement(s) Data+`);
     
     // Notification pour l'utilisateur
-    if (successCount > 0) {
-      const dataPlusMsg = dataPlusCount > 0 ? ` (dont ${dataPlusCount} Data+)` : '';
-      alert(`✅ ${successCount} dossier(s) synchronisé(s) avec succès vers l'application principale!${dataPlusMsg}`);
-    } else {
-      alert('❌ Aucun dossier n\'a pu être synchronisé. Vérifiez la console.');
+    const dataPlusMsg = dataPlusCount > 0 ? ` (dont ${dataPlusCount} Data+)` : '';
+    const message = successCount > 0 
+      ? `✅ ${successCount} dossier(s) synchronisé(s) avec succès vers l'application principale!${dataPlusMsg}`
+      : '❌ Aucun dossier n\'a pu être synchronisé. Vérifiez que votre backend local est démarré sur localhost:5000';
+    
+    if (typeof window !== 'undefined') {
+      alert(message);
     }
+    
+    return { 
+      success: successCount > 0, 
+      count: successCount, 
+      message 
+    };
     
   } catch (error) {
     console.error('❌ Erreur lors de la synchronisation globale:', error);
-    alert('❌ Erreur lors de la synchronisation. Vérifiez la console.');
+    const message = '❌ Erreur lors de la synchronisation. Vérifiez la console.';
+    
+    if (typeof window !== 'undefined') {
+      alert(message);
+    }
+    
+    return { success: false, count: 0, message };
   }
 }
 
