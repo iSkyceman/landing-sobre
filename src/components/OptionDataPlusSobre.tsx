@@ -1,5 +1,8 @@
 "use client";
 
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import React, { useState, useEffect, ChangeEvent, FormEvent, Dispatch, SetStateAction } from "react";
 import styles from "./OptionDataPlusSobre.module.css";
 
@@ -58,7 +61,7 @@ const FORMULES = [
 
 const CONTRACT_TEXT = `Entre les soussignés :
 
-iSkyce, Société individuelle, au capital de [Capital iSkyce] euros, dont le siège social est situé 6, rue schelmenwasen, immatriculée au RCS de Strasbourg sous le numéro 39273610400028, représentée par M. Michel Klein, en qualité de dirigeant, ci-après dénommée 'le Prestataire' ou 'iSkyce',
+iSkyce, Société individuelle, au capital de [Capital iSkyce] euros, dont le siège social est situé 6, rue schelmenwasen, immatriculée au RCS de Strasbourg sous le numéro 39273610400028, représentée par M. Michel Klein, en qualité de dirigeant, ci-après dénommée &apos;le Prestataire&apos; ou &apos;iSkyce&apos;,
 
 Et
 
@@ -75,11 +78,11 @@ Il a été convenu ce qui suit :
 
 Article 1 – Objet
 
-Le présent contrat a pour objet la fourniture par iSkyce au Client d'un abonnement au service « Data+ », comprenant la complétude, la vérification et le rafraîchissement mensuel automatisé du jumeau numérique de l'entreprise cliente, selon les modalités précisées ci-après.
+Le présent contrat a pour objet la fourniture par iSkyce au Client d&apos;un abonnement au service « Data+ », comprenant la complétude, la vérification et le rafraîchissement mensuel automatisé du jumeau numérique de l&apos;entreprise cliente, selon les modalités précisées ci-après.
 
 Article 2 – Description des Services
 
-iSkyce s'engage à :
+iSkyce s&apos;engage à :
 - Enrichir et actualiser mensuellement le jumeau numérique du Client à partir des données collectées et vérifiées.
 - Fournir un accès sécurisé à la plateforme Data+.
 - Envoyer au Client une note de service mensuelle récapitulant les opérations de complétude, de vérification et de rafraîchissement réalisées, ainsi que les éventuelles évolutions ou recommandations.
@@ -87,96 +90,96 @@ iSkyce s'engage à :
 
 Article 3 – Durée
 
-Le présent contrat est conclu pour une durée ferme d'un (1) an à compter de sa date de signature, renouvelable tacitement par périodes successives d'un (1) an, sauf dénonciation par l'une des parties dans les conditions prévues à l'article 10.
+Le présent contrat est conclu pour une durée ferme d&apos;un (1) an à compter de sa date de signature, renouvelable tacitement par périodes successives d&apos;un (1) an, sauf dénonciation par l&apos;une des parties dans les conditions prévues à l&apos;article 10.
 
 Article 4 – Tarification et Modalités de Paiement
 
-- L'abonnement Data+ est facturé selon la grille tarifaire en vigueur au jour de la souscription, en fonction de la tranche d'effectif déclarée par le Client.
-- Le paiement s'effectue par prélèvement automatique via la plateforme Stripe, selon la périodicité convenue (mensuelle ou annuelle).
-- Tout retard de paiement entraînera l'application d'intérêts de retard au taux légal et pourra entraîner la suspension des services après mise en demeure restée sans effet.
+- L&apos;abonnement Data+ est facturé selon la grille tarifaire en vigueur au jour de la souscription, en fonction de la tranche d&apos;effectif déclarée par le Client.
+- Le paiement s&apos;effectue par prélèvement automatique via la plateforme Stripe, selon la périodicité convenue (mensuelle ou annuelle).
+- Tout retard de paiement entraînera l&apos;application d&apos;intérêts de retard au taux légal et pourra entraîner la suspension des services après mise en demeure restée sans effet.
 
 Article 5 – Obligations des Parties
 
-Obligations d'iSkyce :
+Obligations d&apos;iSkyce :
 - Fournir le service Data+ conformément à la description du présent contrat.
-- Garantir la confidentialité, l'intégrité et la sécurité des données du Client, conformément à la norme RGPD.
-- Informer le Client de toute évolution majeure du service ou des conditions d'utilisation.
+- Garantir la confidentialité, l&apos;intégrité et la sécurité des données du Client, conformément à la norme RGPD.
+- Informer le Client de toute évolution majeure du service ou des conditions d&apos;utilisation.
 
 Obligations du Client :
 - Fournir des informations exactes et à jour nécessaires à la création et à la maintenance du jumeau numérique.
-- S'acquitter du paiement de l'abonnement dans les délais convenus.
-- Respecter les conditions d'utilisation de la plateforme Data+.
+- S&apos;acquitter du paiement de l&apos;abonnement dans les délais convenus.
+- Respecter les conditions d&apos;utilisation de la plateforme Data+.
 
 Article 6 – Propriété Intellectuelle
 6.1. Le Client reconnaît que le service Data+, incluant le concept de jumeau numérique, le logiciel
 sous-jacent, les algorithmes de complétude, vérification et rafraîchissement, les bases de données,
 la documentation, et toute amélioration ou adaptation y afférent, sont et demeurent la propriété
-exclusive d'iSkyce ou des tiers lui ayant concédé les droits d'utilisation.
-6.2. Le présent Contrat confère au Client un droit d'accès et d'utilisation non-exclusif, non
+exclusive d&apos;iSkyce ou des tiers lui ayant concédé les droits d&apos;utilisation.
+6.2. Le présent Contrat confère au Client un droit d&apos;accès et d&apos;utilisation non-exclusif, non
 transférable et limité aux seuls Services Data+ fournis par iSkyce, pour la durée du Contrat. Ce
-droit d'utilisation ne saurait en aucun cas être interprété comme une cession, une licence étendue
+droit d&apos;utilisation ne saurait en aucun cas être interprété comme une cession, une licence étendue
 ou un transfert de propriété intellectuelle des éléments susmentionnés au bénéfice du Client.
-6.3. Le Client s'interdit formellement de reproduire, adapter, modifier, traduire, arranger, diffuser,
-décompiler, désassembler ou tenter d'accéder au code source du jumeau numérique ou de tout
+6.3. Le Client s&apos;interdit formellement de reproduire, adapter, modifier, traduire, arranger, diffuser,
+décompiler, désassembler ou tenter d&apos;accéder au code source du jumeau numérique ou de tout
 élément du service Data+, sauf dans les limites expressément autorisées par la loi et le présent
 Contrat.
-6.4. Le jumeau numérique créé et maintenu dans le cadre du Service Data+, bien qu'il reflète les
-données du Client, constitue une œuvre de l'esprit et une base de données dont la conception, la
-structure et le mécanisme de mise à jour restent la propriété exclusive d'iSkyce. Le Client n'acquiert
+6.4. Le jumeau numérique créé et maintenu dans le cadre du Service Data+, bien qu&apos;il reflète les
+données du Client, constitue une œuvre de l&apos;esprit et une base de données dont la conception, la
+structure et le mécanisme de mise à jour restent la propriété exclusive d&apos;iSkyce. Le Client n&apos;acquiert
 aucun droit de propriété sur ce jumeau numérique en tant que tel.
 
 Article 7 – Disponibilité, Maintenance et Évolution du Service
-7.1. iSkyce s'engage à assurer une disponibilité du service Data+ de 99 % sur une base annuelle,
-hors périodes de maintenance planifiée notifiées au Client au moins 48h à l'avance.
+7.1. iSkyce s&apos;engage à assurer une disponibilité du service Data+ de 99 % sur une base annuelle,
+hors périodes de maintenance planifiée notifiées au Client au moins 48h à l&apos;avance.
 7.2. iSkyce ne saurait être tenue responsable des interruptions dues à des cas de force majeure ou
 à des interventions nécessaires pour garantir la sécurité et la stabilité du service.
 7.3. iSkyce se réserve le droit de faire évoluer le service Data+ (fonctionnalités, sécurité, interface...)
-dans l'intérêt de ses clients. Toute modification substantielle sera notifiée au Client.
+dans l&apos;intérêt de ses clients. Toute modification substantielle sera notifiée au Client.
 
 Article 8 – Sous-traitance
-iSkyce pourra recourir à des sous-traitants pour l'exécution de tout ou partie du service, tout en
+iSkyce pourra recourir à des sous-traitants pour l&apos;exécution de tout ou partie du service, tout en
 demeurant responsable vis-à-vis du Client.
 
 Article 9 – Sauvegarde et Restitution des Données
 À la demande du Client et en cas de résiliation, iSkyce restituera les données brutes fournies par le
-Client dans un format standard, à l'exclusion du jumeau numérique et de tout élément relevant de
-la propriété intellectuelle d'iSkyce.
+Client dans un format standard, à l&apos;exclusion du jumeau numérique et de tout élément relevant de
+la propriété intellectuelle d&apos;iSkyce.
 
 Article 10 – Résiliation
-- Chacune des parties peut résilier le contrat à l'issue de la période initiale ou de chaque période de
+- Chacune des parties peut résilier le contrat à l&apos;issue de la période initiale ou de chaque période de
 renouvellement, par lettre recommandée avec accusé de réception, moyennant un préavis de trente (30) jours.
-- En cas de manquement grave par l'une des parties à ses obligations contractuelles, le contrat
+- En cas de manquement grave par l&apos;une des parties à ses obligations contractuelles, le contrat
 pourra être résilié de plein droit, après mise en demeure restée sans effet pendant quinze (15) jours.
-- En cas de résiliation anticipée à l'initiative du Client hors manquement d'iSkyce, les sommes dues
+- En cas de résiliation anticipée à l&apos;initiative du Client hors manquement d&apos;iSkyce, les sommes dues
 pour la période en cours restent exigibles.
 
 Article 11 – Responsabilité
 - iSkyce est tenue à une obligation de moyens pour la fourniture du service Data+. Sa responsabilité
-ne saurait être engagée en cas d'indisponibilité temporaire du service pour maintenance, force
+ne saurait être engagée en cas d&apos;indisponibilité temporaire du service pour maintenance, force
 majeure ou mauvaise utilisation par le Client.
-- En aucun cas, la responsabilité d'iSkyce ne saurait excéder le montant total des sommes versées
+- En aucun cas, la responsabilité d&apos;iSkyce ne saurait excéder le montant total des sommes versées
 par le Client au titre du présent contrat sur les douze (12) derniers mois.
 
 Article 12 – Force majeure
-Aucune des parties ne pourra être tenue responsable d'un manquement à ses obligations en cas
-de survenance d'un événement de force majeure, tel que défini par la jurisprudence française.
+Aucune des parties ne pourra être tenue responsable d&apos;un manquement à ses obligations en cas
+de survenance d&apos;un événement de force majeure, tel que défini par la jurisprudence française.
 
 Article 13 – Conformité réglementaire
 iSkyce garantit que le service Data+ est conforme à la réglementation en vigueur, notamment le
-RGPD. Le Client s'engage à utiliser le service dans le respect de la loi.
+RGPD. Le Client s&apos;engage à utiliser le service dans le respect de la loi.
 
 Article 14 – Audit et Traçabilité
-Toutes les opérations sur les données du Client sont tracées et peuvent faire l'objet d'un audit à la
+Toutes les opérations sur les données du Client sont tracées et peuvent faire l&apos;objet d&apos;un audit à la
 demande du Client, dans la limite du raisonnable.
 
 Article 15 – Non-sollicitation
-Le Client s'interdit de solliciter ou d'embaucher directement ou indirectement tout collaborateur
-d'iSkyce ayant participé à l'exécution du contrat, pendant la durée du contrat et un an après sa
+Le Client s&apos;interdit de solliciter ou d&apos;embaucher directement ou indirectement tout collaborateur
+d&apos;iSkyce ayant participé à l&apos;exécution du contrat, pendant la durée du contrat et un an après sa
 cessation.
 
-Article 16 – Limitation d'accès
-L'accès au service Data+ est réservé aux seuls salariés/mandataires du Client et ne peut être cédé,
-transféré ou mis à disposition de tiers sans accord écrit d'iSkyce.
+Article 16 – Limitation d&apos;accès
+L&apos;accès au service Data+ est réservé aux seuls salariés/mandataires du Client et ne peut être cédé,
+transféré ou mis à disposition de tiers sans accord écrit d&apos;iSkyce.
 
 Article 17 – Communication et Références
 Sauf refus exprès du Client, iSkyce est autorisée à mentionner le nom et le logo du Client comme
@@ -184,11 +187,11 @@ référence commerciale.
 
 Article 18 – Litiges et Droit applicable
 Le présent contrat est régi par le droit français.
-En cas de litige, les parties s'efforcerent de résoudre leur différend à l'amiable. À défaut, le litige
-sera porté devant le tribunal compétent du ressort du siège social d'iSkyce.
+En cas de litige, les parties s&apos;efforcerent de résoudre leur différend à l&apos;amiable. À défaut, le litige
+sera porté devant le tribunal compétent du ressort du siège social d&apos;iSkyce.
 
 Article 19 – Divers
-Toute modification du présent contrat devra faire l'objet d'un avenant écrit signé par les deux
+Toute modification du présent contrat devra faire l&apos;objet d&apos;un avenant écrit signé par les deux
 parties.
 Les coordonnées de contact pour toute question relative au contrat sont : support@iskyce.com, iskyceman@gmail.com.
 
@@ -635,7 +638,7 @@ export default function OptionDataPlusSobre({ prefillData: externalPrefillData }
   const steps = ["Informations", "Contrat", "Paiement", "Confirmation"];
 
   const [code, setCode] = useState("");
-  const [client, setClient] = useState<ClientType | null>(null);
+  const [_client, setClient] = useState<ClientType | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
 
   const [fields, setFields] = useState<FieldsType>({
