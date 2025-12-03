@@ -1,328 +1,357 @@
 "use client";
-import React, { useRef, useState, ReactNode, MouseEvent } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { FaCertificate, FaChartLine, FaArrowRight } from "react-icons/fa";
-import { motion, useReducedMotion } from "framer-motion";
+import { FaArrowRight, FaCertificate, FaChartLine } from "react-icons/fa";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
-// Effet glitch typé typescript
-function GlitchText({ children }: { children: ReactNode }) {
-  return (
-    <span
-      className="relative inline-block glitch"
-      aria-label={typeof children === "string" ? children : undefined}
-    >
-      <span aria-hidden="true" className="glitch-before">
-        {children}
-      </span>
-      <span aria-hidden="true" className="glitch-after">
-        {children}
-      </span>
-      {children}
-      <style jsx>{`
-        .glitch {
-          color: #000;
-          position: relative;
-          display: inline-block;
-        }
-        .glitch-before,
-        .glitch-after {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0.7;
-          pointer-events: none;
-        }
-        .glitch-before {
-          color: #0ff;
-          animation: glitchTop 1.2s infinite linear alternate-reverse;
-          z-index: 2;
-        }
-        .glitch-after {
-          color: #f0f;
-          animation: glitchBot 1.2s infinite linear alternate-reverse;
-          z-index: 1;
-        }
-        @keyframes glitchTop {
-          0% {
-            transform: translate(0, 0);
-          }
-          20% {
-            transform: translate(-2px, -2px);
-          }
-          40% {
-            transform: translate(-2px, 2px);
-          }
-          60% {
-            transform: translate(2px, 2px);
-          }
-          80% {
-            transform: translate(2px, -2px);
-          }
-          100% {
-            transform: translate(0, 0);
-          }
-        }
-        @keyframes glitchBot {
-          0% {
-            transform: translate(0, 0);
-          }
-          20% {
-            transform: translate(2px, 2px);
-          }
-          40% {
-            transform: translate(2px, -2px);
-          }
-          60% {
-            transform: translate(-2px, -2px);
-          }
-          80% {
-            transform: translate(-2px, 2px);
-          }
-          100% {
-            transform: translate(0, 0);
-          }
-        }
-      `}</style>
-    </span>
-  );
+const titleVariants: Variants = {
+  initial: { scale: 1 },
+  animate: {
+    scale: [1, 1.04, 1],
+    transition: {
+      duration: 0.9,
+      ease: [0.45, 1.8, 0.43, 1.03],
+      repeat: Infinity,
+      repeatType: "mirror" as const,
+    },
+  },
+};
+
+function useOrientation() {
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
+
+  useEffect(() => {
+    function checkOrientation() {
+      const match = window.matchMedia(
+        "(orientation: landscape) and (max-width: 900px)"
+      );
+      setIsLandscapeMobile(match.matches);
+    }
+    checkOrientation();
+    window.addEventListener("resize", checkOrientation);
+    return () => window.removeEventListener("resize", checkOrientation);
+  }, []);
+
+  return isLandscapeMobile;
 }
 
 export default function HeaderHero() {
-  const [halo, setHalo] = useState({ x: 50, y: 50 });
-  const ref = useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const ref = useRef<HTMLElement>(null);
+  const [isVisible] = useState(true);
+  const isLandscapeMobile = useOrientation();
 
-  const handleMouseMove = (e: MouseEvent) => {
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const { top, height } = ref.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const yPos = Math.min(
+        100,
+        Math.max(0, ((top + height) / (windowHeight + height)) * 100)
+      );
+      setPos((old) => ({ x: old.x, y: yPos }));
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
     const rect = ref.current?.getBoundingClientRect();
     if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setHalo({ x, y });
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+    setPos({ x, y });
   };
-  const handleMouseLeave = () => setHalo({ x: 50, y: 50 });
+
+  const handleMouseLeave = () => setPos({ x: 50, y: 50 });
+
+  const horizontalMargin = isLandscapeMobile ? "1rem" : "max(3vw, 2rem)";
+  const headerMinHeight = isLandscapeMobile ? "70vh" : "100vh";
 
   return (
     <header
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-screen min-h-screen overflow-x-hidden flex flex-col items-center justify-center bg-gradient-to-r from-[#0f2027] via-[#2c5364] to-[#00fff7] text-black px-0"
-      aria-label="En-tête principal version Itech"
-      style={{
-        backgroundSize: "200% 200%",
-        animation: "gradientMove 8s ease-in-out infinite alternate",
-      }}
+      className="relative w-full overflow-hidden"
+      style={{ cursor: "pointer", minHeight: headerMinHeight }}
     >
-      {/* Halo lumineux */}
+      {/* Background image */}
       <div
-        className="absolute z-10 pointer-events-none hidden md:block"
+        className="absolute inset-0 z-0"
         style={{
-          left: `calc(50% - 80px)`,
-          top: `calc(15% - 40px)`,
-          width: 160,
-          height: 160,
-          background: `radial-gradient(circle at ${halo.x}% ${halo.y}%, #00fff7bb 0%, #00fff700 80%)`,
-          filter: "blur(32px)",
-          transition: shouldReduceMotion
-            ? undefined
-            : "background-position 0.2s, left 0.2s, top 0.2s",
+          backgroundImage: "url('/images/usine.webp')",
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: `${pos.x}% ${pos.y}%`,
+          height: "100%",
+          width: "100%",
+          transition: "background-position 0.3s ease",
+          willChange: "background-position",
         }}
         aria-hidden="true"
       />
 
-      <motion.div
-        className="relative z-20 flex flex-col items-center justify-center w-full max-w-full md:max-w-3xl py-6"
-        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.97, y: 60 }}
-        animate={shouldReduceMotion ? false : { opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.45, 1.8, 0.43, 1.03] }}
-        role="main"
-      >
-        {/* Logo flottant animé */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8, y: -30 }}
-          animate={
-            shouldReduceMotion
-              ? false
-              : {
+      {/* Overlay */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-br from-black/80 via-black/40 to-transparent pointer-events-none" />
+
+      <AnimatePresence mode="wait">
+        {isVisible && (
+          <motion.div
+            key="hero-content"
+            initial={{ opacity: 0, y: 20, scale: 0.9, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0)" }}
+            exit={{ opacity: 0, y: 20, scale: 0.9, filter: "blur(4px)" }}
+            transition={{ duration: 0.8 }}
+            className="relative z-20 flex flex-col items-start w-full max-w-7xl"
+            style={{
+              marginLeft: horizontalMargin,
+              marginRight: horizontalMargin,
+              paddingTop: "6rem",
+              paddingBottom: "2rem",
+            }}
+          >
+            {/* Logo */}
+            <motion.div
+              initial={false}
+              whileHover={{ rotate: 2, filter: "brightness(1.15)" }}
+              className="mb-5"
+              style={{ paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+            >
+              <Image
+                src="/images/logo-iSkyce-industrie-5.0.png"
+                alt="Logo iSkyce industrie 5.0"
+                width={112}
+                height={58}
+                style={{ width: 112, height: "auto" }}
+                priority
+              />
+            </motion.div>
+
+            {/* Content container */}
+            <div
+              className="w-full max-w-full"
+              style={{
+                boxSizing: "border-box",
+                overflow: "hidden",
+                paddingLeft: 0,
+                paddingRight: 0,
+              }}
+            >
+              <motion.h1
+                className="font-black drop-shadow-lg mb-4 leading-tight tracking-tight"
+                style={{
+                  fontSize: "clamp(1.5rem, 5vw, 3.2rem)",
+                  lineHeight: 1.15,
+                  color: "white",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
+                  whiteSpace: "normal",
+                  maxWidth: "100vw",
+                }}
+                variants={titleVariants}
+                initial="initial"
+                animate="animate"
+              >
+                Transformez votre entreprise
+                <span className="block" style={{ color: "white" }}>
+                  avec l’IA avancé
+                </span>
+              </motion.h1>
+              <motion.p
+                className="font-semibold drop-shadow max-w-3xl mb-5"
+                style={{
+                  fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
+                  lineHeight: 1.35,
+                  color: "white",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
+                  whiteSpace: "normal",
+                  maxWidth: "100vw",
+                }}
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.7, ease: "easeOut" }}
+              >
+                +15% de performance, -20% de coûts, 40% de réduction CO₂.
+                <br />
+                Analyse IA personnalisée, résultats en 72h.
+                <span
+                  className="text-orange-300 font-bold ml-1"
+                  style={{ color: "#fbbf24" }}
+                >
+                  Prenez une longueur d’avance.
+                </span>
+              </motion.p>
+            </div>
+
+            {/* Call to action button */}
+            <motion.button
+              type="button"
+              className="flex justify-center items-center gap-3 bg-gradient-to-r from-orange-500 via-orange-400 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-white font-extrabold py-3 px-7 rounded-full shadow-2xl uppercase tracking-wider animate-btn-pop transition-all duration-200 text-base sm:text-lg md:text-xl hover:scale-105 focus:ring-2 focus:ring-orange-200 mb-12 max-w-md"
+              initial={false}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              whileHover={{
+                scale: 1.07,
+                boxShadow: "0 8px 32px rgba(251,191,36,0.25)",
+              }}
+              onClick={() => window.dispatchEvent(new Event("ouvrirCalculateurIA"))}
+              style={{ background: "linear-gradient(90deg, #f97316 0%, #fbbf24 100%)" }}
+            >
+              Découvrez nos solutions IA
+              <motion.span
+                initial={{ x: 0 }}
+                animate={{ x: [0, 10, 0] }}
+                transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+              >
+                <FaArrowRight className="ml-2 text-2xl" />
+              </motion.span>
+            </motion.button>
+
+            {/* Bottom cards */}
+            <div className="flex flex-row items-start w-full max-w-3xl mt-12 landscape:flex-wrap landscape:overflow-x-auto">
+              <motion.div
+                key="audit-predictif"
+                style={{
+                  position: "relative",
+                  zIndex: 9999,
                   opacity: 1,
-                  scale: [1, 1.07, 1],
-                  y: [0, -8, 0],
+                  visibility: "visible",
+                  marginRight: "3.5rem",
+                }}
+                initial={{ opacity: 1, x: 0, scale: 1 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ delay: 0, duration: 0 }}
+                whileHover={{ scale: 1.06, boxShadow: "0 8px 32px rgba(251,191,54,0.18)" }}
+                className="flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-2xl border border-gray-200 min-w-[140px] justify-center transition-transform"
+              >
+                <FaCertificate
+                  className="text-orange-400 text-2xl"
+                  style={{
+                    position: "relative",
+                    zIndex: 10000,
+                    opacity: 1,
+                    visibility: "visible",
+                    filter:
+                      "drop-shadow(0 0 5px rgba(251, 191, 54, 0.8)) drop-shadow(0 0 8px rgba(251, 191, 54, 0.5))",
+                  }}
+                />
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
+                    lineHeight: 1.35,
+                    color: "#1e3a8a",
+                    textShadow: "0 0 6px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  Audit prédictif
+                </span>
+              </motion.div>
+
+              <motion.div
+                key="roi-x3"
+                style={{
+                  position: "relative",
+                  zIndex: 9999,
+                  opacity: 1,
+                  visibility: "visible",
+                }}
+                initial={{ opacity: 0, x: 30, scale: 0.96 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
+                whileHover={{ scale: 1.06, boxShadow: "0 8px 32px rgba(34,197,94,0.18)" }}
+                className="flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow-2xl border border-gray-200 min-w-[110px] justify-center transition-transform"
+              >
+                <motion.span
+                  initial={{ rotate: 20, scale: 0.8 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ delay: 0.6, duration: 0.4, type: "spring" }}
+                  style={{ textShadow: "0 0 6px rgba(0,0,0,0.4)" }}
+                >
+                  <FaChartLine
+                    className="text-green-500 text-2xl"
+                    style={{
+                      position: "relative",
+                      zIndex: 10000,
+                      opacity: 1,
+                      visibility: "visible",
+                      filter:
+                        "drop-shadow(0 0 5px rgba(34, 197, 94, 0.8)) drop-shadow(0 0 8px rgba(34, 197, 94, 0.5))",
+                    }}
+                  />
+                </motion.span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
+                    lineHeight: 1.35,
+                    color: "#1e3a8a",
+                    textShadow: "0 0 6px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  ROI x3
+                </span>
+              </motion.div>
+            </div>
+
+            <style jsx>{`
+              .animate-btn-pop {
+                animation: btn-pop 0.65s cubic-bezier(.45,1.8,.43,1.03) both;
+              }
+              @keyframes btn-pop {
+                0% {
+                  transform: scale(0.8);
                 }
-          }
-          transition={{
-            duration: 1.2,
-            scale: { repeat: Infinity, repeatType: "mirror", duration: 2.5 },
-            y: { repeat: Infinity, repeatType: "mirror", duration: 3 },
-            ease: "easeInOut",
-          }}
-          className="mb-6 w-auto max-w-xs md:max-w-md"
-          style={{ willChange: "transform, filter", marginTop: 0 }}
-        >
-          <Image
-            src="/images/logo-iSkyce-industrie-5.0.png"
-            alt="Logo iSkyce industrie 5.0"
-            width={110}
-            height={55}
-            priority
-            className="block drop-shadow-lg w-auto h-auto max-w-full"
-          />
-        </motion.div>
-
-        {/* Titre principal avec effet glitch */}
-        <h1
-          className="font-black leading-tight mb-4 tracking-tight text-center text-black max-w-full md:max-w-2xl"
-          style={{ fontSize: "clamp(1.4rem, 5vw, 2.8rem)", lineHeight: 1.15 }}
-          tabIndex={0}
-        >
-          Transformez votre entreprise avec <GlitchText>l’IA avancé</GlitchText>
-        </h1>
-
-        {/* Texte descriptif */}
-        <motion.p
-  className="font-semibold max-w-md md:max-w-xl mb-6 text-center text-white"
-  style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", lineHeight: 1.4, color: '#fff' }}
-  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-  animate={shouldReduceMotion ? false : { opacity: 1, y: 0 }}
-  transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
->
-  +15% de performance, -20% de coûts, 40% de réduction CO₂.
-  <br />
-  Analyse IA personnalisée, résultats en 72h.
-  <span className="text-cyan-600 font-bold ml-1">Prenez une longueur d’avance.</span>
-</motion.p>
-
-
-        {/* Bouton CTA */}
-        <motion.button
-          type="button"
-          className="relative flex justify-center items-center gap-4 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold py-3 px-5 text-lg md:py-6 md:px-12 md:text-2xl rounded-full shadow-lg hover:shadow-xl uppercase tracking-wider transition-all duration-200 hover:scale-110 focus:ring-4 focus:ring-cyan-400 mb-5 border-transparent outline-none focus:outline-cyan-400 overflow-hidden"
-          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
-          animate={shouldReduceMotion ? false : { opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          whileHover={
-            shouldReduceMotion
-              ? {}
-              : { scale: 1.15, boxShadow: "0 0 24px #0592a1, 0 0 48px #096d75" }
-          }
-          whileTap={{ scale: 0.96 }}
-          aria-label="Découvrez nos solutions IA"
-          tabIndex={0}
-          onClick={() => window.dispatchEvent(new Event("ouvrirCalculateurIA1"))}
-        >
-          <span className="relative z-10">Découvrez nos solutions IA</span>
-          <motion.span
-            initial={shouldReduceMotion ? false : { x: 0 }}
-            animate={shouldReduceMotion ? false : { x: [0, 14, 0] }}
-            transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
-            aria-hidden="true"
-            style={{ willChange: "transform" }}
-          >
-            <FaArrowRight className="ml-2 text-3xl md:text-4xl" />
-          </motion.span>
-          <span className="absolute inset-0 pointer-events-none">
-            <span className="scan-bar" />
-          </span>
-        </motion.button>
-
-        {/* Cartes flottantes */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-6 w-full max-w-sm mx-auto mt-2">
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 30, scale: 0.92 }}
-            animate={
-              shouldReduceMotion
-                ? false
-                : {
-                    opacity: 1,
-                    y: [0, -6, 0, 6, 0],
-                    scale: 1,
-                  }
-            }
-            transition={{
-              delay: 0.5,
-              duration: 3,
-              repeat: Infinity,
-              repeatType: "mirror",
-              ease: "easeInOut",
-            }}
-            className="flex items-center gap-2 bg-white/30 backdrop-blur-lg text-white font-semibold rounded-2xl px-3 py-2 shadow-2xl border border-white/40 min-w-0 sm:min-w-[120px] justify-center transition-transform text-base md:text-lg"
-            tabIndex={0}
-            style={{ willChange: "transform, box-shadow", color: "#fff" }}
-          >
-            <FaCertificate className="text-white text-xl md:text-2xl" />
-            Audit prédictif
-          </motion.div>
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: -30, scale: 0.92 }}
-            animate={
-              shouldReduceMotion
-                ? false
-                : {
-                    opacity: 1,
-                    y: [0, 6, 0, -6, 0],
-                    scale: 1,
-                  }
-            }
-            transition={{
-              delay: 0.7,
-              duration: 3,
-              repeat: Infinity,
-              repeatType: "mirror",
-              ease: "easeInOut",
-            }}
-            className="flex items-center gap-2 bg-white/30 backdrop-blur-lg text-white font-semibold rounded-2xl px-3 py-2 shadow-2xl border border-white/40 min-w-0 sm:min-w-[110px] justify-center transition-transform text-base md:text-lg"
-            tabIndex={0}
-            style={{ willChange: "transform, box-shadow", color: "#fff" }}
-          >
-            <FaChartLine className="text-white text-xl md:text-2xl" />
-            ROI x3
-          </motion.div>
-        </div>
-      </motion.div>
-      <style jsx>{`
-        .bg-gradient-animate {
-          background: linear-gradient(
-            120deg,
-            #0f2027 0%,
-            #2c5364 50%,
-            #00fff7 100%
-          );
-          background-size: 200% 200%;
-          animation: gradientMove 8s ease-in-out infinite alternate;
-        }
-        @keyframes gradientMove {
-          0% {
-            background-position: 0% 50%;
-          }
-          100% {
-            background-position: 100% 50%;
-          }
-        }
-        .scan-bar {
-          position: absolute;
-          left: -60%;
-          top: 0;
-          bottom: 0;
-          width: 60%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            #fff8,
-            transparent
-          );
-          filter: blur(4px);
-          animation: scanMove 1.8s linear infinite;
-        }
-        @keyframes scanMove {
-          0% {
-            left: -60%;
-          }
-          100% {
-            left: 120%;
-          }
-        }
-      `}</style>
-    </header>
-  );
+                70% {
+                  transform: scale(1.1);
+                }
+                100% {
+                  transform: scale(1);
+                }
+              }
+              /* Anti-débordement stricte mobile */
+              @media (max-width: 600px) {
+                .max-w-full,
+                .w-full {
+                  max-width: 100vw !important;
+                  padding-left: 4vw !important;
+                  padding-right: 4vw !important;
+                }
+                h1,
+                p {
+                  font-size: 4vw !important;
+                  white-space: normal !important;
+                  word-break: break-word !important;
+                  overflow-wrap: break-word !important;
+                }
+              }
+              /* Paysage mobile : débordement possible wrap et scroll */
+              @media (orientation: landscape) and (max-width: 900px) {
+                .max-w-full,
+                .w-full,
+                h1,
+                p {
+                  max-width: 100vw !important;
+                  font-size: 3vw !important;
+                  padding-left: 3vw !important;
+                  padding-right: 3vw !important;
+                }
+                /* Permet le wrap pour cartes en paysage sur petit écran */
+                .landscape\\:flex-wrap {
+                  flex-wrap: wrap;
+                }
+                /* Permet scroll horizontal si débordement */
+                .landscape\\:overflow-x-auto {
+                  overflow-x: auto;
+                }
+              }
+            `}</style>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
 }

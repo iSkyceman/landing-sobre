@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <>
       {/* Choix du header selon variante */}
-      {VARIANTE === 2 ? <HeroHeaderVariante1 /> : <HeroHeaderVariante2 />}
+      {VARIANTE === 1 ? <HeroHeaderVariante1 /> : <HeroHeaderVariante2 />}
 
       {/* Contenu principal */}
       <main className="bg-white">
