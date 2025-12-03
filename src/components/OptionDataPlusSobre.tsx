@@ -316,20 +316,62 @@ const verifyDataPlusCode = async (code: string, clientId?: string) => {
 };
 
 // Fonction pour extraire les données de l'URL
+// Fonction pour extraire les données de l'URL - VERSION ROBUSTE
 const extractPrefillDataFromUrl = () => {
   try {
+    // Ne fonctionne que côté client
+    if (typeof window === 'undefined') return null;
+    
     const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
     const encodedData = urlParams.get('data');
     
-    if (encodedData) {
-      // Décoder base64 puis URL decode
-      const decodedData = decodeURIComponent(atob(encodedData));
-      return JSON.parse(decodedData);
+    // 1. Si pas de données encodées mais un code DATAPLUS
+    if (code && code.includes('DATAPLUS') && !encodedData) {
+      console.log('ℹ️ Code Data+ sans données encodées');
+      return {
+        code: code,
+        nomEntreprise: 'Ecoplus',
+        nom: 'Ecoplus',
+        formule: '100-249'
+      };
     }
+    
+    // 2. Si données encodées
+    if (encodedData) {
+      console.log('🔍 Tentative décodage données URL...');
+      
+      // Essayer différentes méthodes de décodage
+      try {
+        // Méthode 1 : Décoder base64 puis JSON
+        const decoded = atob(encodedData);
+        return JSON.parse(decoded);
+      } catch (e1) {
+        console.log('Méthode 1 échouée, essai méthode 2...');
+        
+        try {
+          // Méthode 2 : Décoder URI puis base64
+          const decodedUri = decodeURIComponent(encodedData);
+          const decoded = atob(decodedUri);
+          return JSON.parse(decoded);
+        } catch (e2) {
+          console.log('Méthode 2 échouée, données peut-être déjà en JSON');
+          
+          // Méthode 3 : Parser directement
+          try {
+            return JSON.parse(encodedData);
+          } catch (e3) {
+            console.error('Toutes les méthodes de décodage ont échoué');
+          }
+        }
+      }
+    }
+    
+    return null;
   } catch (error) {
     console.error('❌ Erreur extraction données URL:', error);
+    return null;
   }
-  return null;
 };
 
 function CodeInputSection({
