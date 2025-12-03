@@ -257,45 +257,62 @@ function contratTextToHtml(rawText: string): string {
   return html;
 }
 
-// Fonction pour vérifier le code avec le backend
+// Fonction pour vérifier le code avec le backend (ou simulation)
 const verifyDataPlusCode = async (code: string, clientId?: string) => {
-  try {
-    console.log('🔍 Vérification code Data+:', code);
+  console.log('🔍 Vérification code Data+:', code);
+  
+  // ✅ MODE SIMULATION - Backend non déployé sur Vercel
+  // Pour les codes DATAPLUS, on simule une réponse positive
+  
+  // 1. Vérifier si c'est un code Data+ valide
+  if (code.includes('DATAPLUS')) {
+    console.log('✅ Code Data+ valide (mode simulation)');
     
-    // MODIFIE CETTE URL SELON TON ENVIRONNEMENT
-    // Pour Vercel : https://industrie5-node-backend.vercel.app/api/dataplus/verify-code
-    // Pour local : http://localhost:5000/api/dataplus/verify-code
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://industrie5-node-backend.vercel.app';
-    
-    const params = new URLSearchParams();
-    params.append('code', code);
-    if (clientId) {
-      params.append('client', clientId);
+    // Récupérer les données pré-remplies de l'URL si disponibles
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const encodedData = urlParams.get('data');
+      
+      if (encodedData) {
+        const decodedData = decodeURIComponent(atob(encodedData));
+        const prefillData = JSON.parse(decodedData);
+        
+        console.log('📦 Données pré-remplies trouvées:', prefillData);
+        
+        return {
+          success: true,
+          clientName: prefillData.nom || prefillData.nomEntreprise || 'Ecoplus',
+          clientId: prefillData.clientId || prefillData.id || clientId || '691b39dc1c286871e23aee33',
+          testMode: true,
+          prix: prefillData.prix || 690,
+          formule: prefillData.formule || '100-249',
+          periodicite: prefillData.periodicite || 'annuel'
+        };
+      }
+    } catch (error) {
+      console.log('ℹ️ Pas de données pré-remplies dans l\'URL');
     }
     
-    const response = await fetch(`${backendUrl}/api/dataplus/verify-code?${params.toString()}`);
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Réponse backend:', data);
-      return {
-        success: data.success,
-        clientName: data.clientName,
-        clientId: data.clientId,
-        testMode: data.testMode || false,
-        prix: data.prix,
-        formule: data.formule,
-        periodicite: data.periodicite
-      };
-    }
-    
-    console.error('❌ Erreur réponse backend:', response.status);
-    return { success: false, clientName: null, clientId: null, testMode: false };
-    
-  } catch (error) {
-    console.error('❌ Erreur vérification code:', error);
-    return { success: false, clientName: null, clientId: null, testMode: false };
+    // Retour par défaut si pas de données pré-remplies
+    return {
+      success: true,
+      clientName: 'Ecoplus',
+      clientId: clientId || '691b39dc1c286871e23aee33',
+      testMode: true,
+      prix: 690,
+      formule: '100-249',
+      periodicite: 'annuel'
+    };
   }
+  
+  // 2. Code non reconnu
+  console.log('❌ Code invalide ou non reconnu');
+  return { 
+    success: false, 
+    clientName: null, 
+    clientId: null, 
+    testMode: false 
+  };
 };
 
 // Fonction pour extraire les données de l'URL
