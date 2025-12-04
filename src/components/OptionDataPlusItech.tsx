@@ -130,7 +130,7 @@ aucun droit de propriété sur ce jumeau numérique en tant que tel.
 
 Article 7 – Disponibilité, Maintenance et Évolution du Service
 7.1. iSkyce s&apos;engage à assurer une disponibilité du service Data+ de 99 % sur une base annuelle,
-hors périodes de maintenance planifiée notifiées au Client au moins 48h à l&apos;avance.
+hors périodes de maintenance planifiée notifiée au Client au moins 48h à l&apos;avance.
 7.2. iSkyce ne saurait être tenue responsable des interruptions dues à des cas de force majeure ou
 à des interventions nécessaires pour garantir la sécurité et la stabilité du service.
 7.3. iSkyce se réserve le droit de faire évoluer le service Data+ (fonctionnalités, sécurité, interface...)
@@ -314,7 +314,7 @@ const verifyDataPlusCode = async (code: string, clientId?: string) => {
   };
 };
 
-// Fonction pour extraire les données de l'URL - VERSION ROBUSTE
+// Fonction pour extraire les données de l'URL - VERSION AMÉLIORÉE
 const extractPrefillDataFromUrl = () => {
   try {
     // Ne fonctionne que côté client
@@ -324,14 +324,22 @@ const extractPrefillDataFromUrl = () => {
     const code = urlParams.get('code');
     const encodedData = urlParams.get('data');
     
+    // IMPORTANT : Mettre à jour le state code si présent dans l'URL
+    if (code && code.includes('DATAPLUS')) {
+      console.log('🌐 Code trouvé dans l\'URL:', code);
+      // Le code sera mis à jour par le useEffect plus haut
+    }
+    
     // 1. Si pas de données encodées mais un code DATAPLUS
     if (code && code.includes('DATAPLUS') && !encodedData) {
-      console.log('ℹ️ Code Data+ sans données encodées');
+      console.log('ℹ️ Code Data+ détecté dans l\'URL, création de prefillData');
       return {
         code: code,
         nomEntreprise: 'Ecoplus',
         nom: 'Ecoplus',
-        formule: '100-249'
+        formule: '100-249',
+        prix: 690,
+        periodicite: 'annuel'
       };
     }
     
@@ -343,7 +351,14 @@ const extractPrefillDataFromUrl = () => {
       try {
         // Méthode 1 : Décoder base64 puis JSON
         const decoded = atob(encodedData);
-        return JSON.parse(decoded);
+        const data = JSON.parse(decoded);
+        
+        // S'assurer qu'on a le code
+        if (code && !data.code) {
+          data.code = code;
+        }
+        
+        return data;
       } catch (e1) {
         console.log('Méthode 1 échouée, essai méthode 2...');
         
@@ -351,15 +366,29 @@ const extractPrefillDataFromUrl = () => {
           // Méthode 2 : Décoder URI puis base64
           const decodedUri = decodeURIComponent(encodedData);
           const decoded = atob(decodedUri);
-          return JSON.parse(decoded);
+          const data = JSON.parse(decoded);
+          
+          // S'assurer qu'on a le code
+          if (code && !data.code) {
+            data.code = code;
+          }
+          
+          return data;
         } catch (e2) {
           console.log('Méthode 2 échouée, données peut-être déjà en JSON');
           
           // Méthode 3 : Parser directement
           try {
-            return JSON.parse(encodedData);
+            const data = JSON.parse(encodedData);
+            
+            // S'assurer qu'on a le code
+            if (code && !data.code) {
+              data.code = code;
+            }
+            
+            return data;
           } catch (e3) {
-            console.error('Toutes les méthodes de décodage ont échoué');
+            console.error('❌ Toutes les méthodes de décodage ont échoué');
           }
         }
       }
@@ -754,6 +783,38 @@ export default function OptionDataPlusItech({ prefillData: externalPrefillData }
     }
   }, [externalPrefillData]);
 
+  // ⭐⭐⭐ CRITIQUE : PRÉ-REMPLIR AUTOMATIQUEMENT LE CHAMP CODE DEPUIS L'URL ⭐⭐⭐
+  useEffect(() => {
+    // Ne s'exécute que côté client
+    if (typeof window === 'undefined') return;
+    
+    // Si on a déjà des données pré-remplies (prefillData), on skip
+    if (prefillData) return;
+    
+    // Si le champ code est déjà rempli, on skip
+    if (code && code.length > 0) return;
+    
+    // Extraire le code depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCode = urlParams.get('code');
+    
+    // Si on trouve un code dans l'URL et qu'il commence par DATAPLUS
+    if (urlCode && urlCode.includes('DATAPLUS')) {
+      console.log('🔗 Code détecté dans l\'URL, pré-remplissage automatique :', urlCode);
+      setCode(urlCode);
+      
+      // Optionnel : focus automatique sur le champ
+      setTimeout(() => {
+        const codeInput = document.getElementById('code_data_plus');
+        if (codeInput) {
+          codeInput.focus();
+          // Sélectionner tout le texte pour faciliter le copier-coller si besoin
+          (codeInput as HTMLInputElement).select();
+        }
+      }, 100);
+    }
+  }, []); // S'exécute une seule fois au montage
+
   // ÉTAPE 2 : Pré-remplir les champs avec prefillData
   useEffect(() => {
     if (prefillData) {
@@ -783,6 +844,11 @@ export default function OptionDataPlusItech({ prefillData: externalPrefillData }
       // Si on a une périodicité dans prefillData, la sélectionner
       if (prefillData.periodicite) {
         setPaiement(prefillData.periodicite === 'annuel' ? 'annuel' : 'mensuel');
+      }
+      
+      // Si on a un code dans prefillData, le mettre aussi
+      if (prefillData.code && !code) {
+        setCode(prefillData.code);
       }
       
       setFields(prev => ({ ...prev, ...newFields }));
