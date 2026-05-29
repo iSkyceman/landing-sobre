@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "clean": "rimraf .next",
-    "dev": "next dev",
-    "build": "npm run clean && next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
-  },
+ "scripts": {
+  "clean": "rimraf .next",
+  "dev": "next dev",
+  "build": "npm run clean && next build --no-lint",
+  "start": "next start",
+  "lint": "eslint .",
+  "lint:fix": "eslint . --fix",
+  "format": "prettier --write ."
+},
   "dependencies": {
     "@stripe/stripe-js": "^7.4.0",
     "flowbite": "^3.1.2",

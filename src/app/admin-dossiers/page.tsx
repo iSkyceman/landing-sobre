@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import styles from "./AdminDossiers.module.css";
 import { getDossiers, supprimerDossier as delDossier, supprimerSelection as delSelection } from "@services/DataService";
 import { syncAllDossiers } from "@services/SyncService";
-import type { Dossier } from "@models/dossier";
+// Import relatif
+import type { Dossier } from "../../types/dossier";
 
 export default function AdminDossiers() {
   const [dossiers, setDossiersState] = useState<Dossier[]>([]);
