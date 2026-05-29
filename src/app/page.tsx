@@ -22,7 +22,7 @@ import FooterSobre from "@components/Footer/FooterSobre";
 import FooterItech from "@components/Footer/FooterItech";
 
 // Configuration de la variante (1 = Sobre, 2 = Itech)
-const VARIANTE: 1 | 2 = 1;
+const VARIANTE: 1 | 2 = 2;
 
 // Métadonnées avec typage explicite
 export const metadata = {
