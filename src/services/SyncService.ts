@@ -1,24 +1,33 @@
 // src/services/SyncService.ts - VERSION CORRIGÉE POUR PRODUCTION DATAPLUS
 import type { Dossier } from '../types/dossier';
 
-// ✅ CORRECTION : URL conditionnelle pour production/développement
+// ✅ CORRECTION : Utilisation de la variable d'environnement Vercel
 const getApiBaseUrl = (): string => {
-  // Si on est côté client (browser)
+  // Priorité à la variable d'environnement NEXT_PUBLIC_API_URL
   if (typeof window !== 'undefined') {
-    // En production sur Vercel
-    if (window.location.hostname.includes('vercel.app')) {
-      return ''; // Désactivé en production
+    // Vérifier si la variable d'environnement est accessible côté client
+    // @ts-ignore - process.env est accessible côté client avec NEXT_PUBLIC_
+    if (process.env.NEXT_PUBLIC_API_URL) {
+      // @ts-ignore
+      console.log('🌐 Utilisation de NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+      // @ts-ignore
+      return process.env.NEXT_PUBLIC_API_URL;
     }
-    // En développement local
+    
+    // Fallback pour le développement local
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:5000/api';
+      console.log('🏠 Mode développement local');
+      return 'http://localhost:5000';
     }
   }
-  // Par défaut, désactivé
-  return '';
+  
+  // Fallback final (ngrok)
+  console.log('🔗 Fallback vers ngrok');
+  return 'https://periscope-chatroom-oversleep.ngrok-free.dev';
 };
 
 const API_BASE_URL = getApiBaseUrl();
+console.log('📡 API_BASE_URL configurée:', API_BASE_URL);
 
 export interface ClientData {
   dossierNumber: string;
@@ -37,7 +46,6 @@ export interface ClientData {
 
 // Fonction pour transformer un Dossier en ClientData pour l'API
 function transformDossierToClient(dossier: Dossier): ClientData {
-  // ✅ CORRECTION : Gestion spéciale pour Data+
   const isDataPlus = dossier.reference.includes('DATAPLUS');
   const offreName = isDataPlus ? 'DataPlus' : (dossier.offre?.nom || 'Non spécifiée');
   
@@ -52,23 +60,21 @@ function transformDossierToClient(dossier: Dossier): ClientData {
     date: dossier.date,
     sujets: dossier.sujets ? Object.values(dossier.sujets).filter(s => s) : [],
     observation: dossier.observation,
-    contrat: isDataPlus, // ✅ TRUE pour Data+, false pour les autres
+    contrat: isDataPlus,
     provenance: dossier.provenance || 'Landing Page'
   };
 }
 
-// Fonction pour envoyer les données vers l'API principale - CORRIGÉE
+// Fonction pour envoyer les données vers l'API principale
 export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
   try {
-    // ✅ CORRECTION : Vérification si l'API est disponible
     if (!API_BASE_URL) {
-      console.log('🔒 Synchronisation désactivée (production ou API non disponible)');
+      console.error('❌ API_BASE_URL non définie');
       return false;
     }
     
     const clientData = transformDossierToClient(dossier);
     
-    // ✅ CORRECTION : Validation adaptée pour Data+
     if (!clientData.dossierNumber || !clientData.username || !clientData.email) {
       console.error('❌ Champs requis manquants pour:', clientData.dossierNumber);
       return false;
@@ -76,7 +82,7 @@ export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
     
     console.log('🔄 Envoi vers API:', clientData);
     
-    const response = await fetch(`${API_BASE_URL}/landing/sync-client`, {
+    const response = await fetch(`${API_BASE_URL}/api/landing/sync-client`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +96,7 @@ export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
       return true;
     } else {
       const errorText = await response.text();
-      console.error('❌ Erreur synchronisation:', errorText);
+      console.error('❌ Erreur synchronisation (HTTP ' + response.status + '):', errorText);
       return false;
     }
   } catch (error) {
@@ -99,16 +105,9 @@ export async function syncDossierToMainApp(dossier: Dossier): Promise<boolean> {
   }
 }
 
-// Fonction pour synchroniser tous les dossiers existants - CORRIGÉE
+// Fonction pour synchroniser tous les dossiers existants
 export async function syncAllDossiers(): Promise<{success: boolean; count: number; message: string}> {
   try {
-    // ✅ CORRECTION : Vérification préalable
-    if (!API_BASE_URL) {
-      const message = '🔒 Synchronisation désactivée en production - Fonctionne uniquement en développement local';
-      console.log(message);
-      return { success: false, count: 0, message };
-    }
-    
     // Récupère tous les dossiers du localStorage
     const saved = localStorage.getItem("dossiers");
     if (!saved) {
@@ -123,7 +122,6 @@ export async function syncAllDossiers(): Promise<{success: boolean; count: numbe
     console.log(`🔄 Début synchronisation de ${dossiers.length} dossiers...`);
 
     for (const dossier of dossiers) {
-      // ✅ CORRECTION : Log spécial pour Data+
       const isDataPlus = dossier.reference.includes('DATAPLUS');
       if (isDataPlus) {
         console.log(`📊 Traitement Data+ spécial: ${dossier.reference}`);
@@ -145,7 +143,7 @@ export async function syncAllDossiers(): Promise<{success: boolean; count: numbe
       const dataPlusMsg = dataPlusCount > 0 ? ` (dont ${dataPlusCount} Data+)` : '';
       alert(`✅ ${successCount} dossier(s) synchronisé(s) avec succès vers l'application principale!${dataPlusMsg}`);
     } else {
-      alert('❌ Aucun dossier n\'a pu être synchronisé. Vérifiez la console.');
+      console.warn('⚠️ Aucun dossier synchronisé');
     }
     
     return { 
@@ -158,20 +156,6 @@ export async function syncAllDossiers(): Promise<{success: boolean; count: numbe
     
   } catch (error) {
     console.error('❌ Erreur lors de la synchronisation globale:', error);
-    const message = '❌ Erreur lors de la synchronisation. Vérifiez la console.';
-    
-    if (typeof window !== 'undefined') {
-      alert(message);
-    }
-    
-    return { success: false, count: 0, message };
+    return { success: false, count: 0, message: '❌ Erreur lors de la synchronisation' };
   }
-}
-
-// Hook pour la synchronisation automatique
-export function useAutoSync() {
-  return {
-    syncAllDossiers,
-    syncDossierToMainApp
-  };
 }

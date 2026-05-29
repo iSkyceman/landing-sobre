@@ -1,0 +1,88 @@
+Structure du dossier pour le volume SystŠme
+Le num‚ro de s‚rie du volume est 000000F2 FE47:096C
+C:\USERS\ISKYC\DOCUMENTS\LANDING-NODE\SRC
++---app
+|   |   layout.tsx
+|   |   page.tsx
+|   |   
+|   +---admin-dossiers
+|   |       AdminDossiers.module.css
+|   |       page.tsx
+|   |       
+|   +---api
+|   |   \---login
+|   |           route.ts
+|   |           
+|   \---login
+|           page.tsx
+|           
++---components
+|   |   BackgroundAnimation.tsx
+|   |   ClientOnlyOptionDataPlusSobre.tsx
+|   |   LayoutWrapper.tsx
+|   |   OptionDataPlusItech.module.css
+|   |   OptionDataPlusItech.tsx
+|   |   OptionDataPlusSobre.module.css
+|   |   OptionDataPlusSobre.tsx
+|   |   
+|   +---Benefices
+|   |       BeneficesItech.module.css
+|   |       BeneficesItech.tsx
+|   |       BeneficesSobre.module.css
+|   |       BeneficesSobre.tsx
+|   |       
+|   +---calculateur
+|   |       CalculateurIA.tsx
+|   |       CalculateurIA1.tsx
+|   |       
+|   +---ConfidentialiteSection
+|   |       ConfidentialiteItech.module.css
+|   |       ConfidentialiteItech.tsx
+|   |       ConfidentialiteSobre.module.css
+|   |       ConfidentialiteSobre.tsx
+|   |       
+|   +---CtaFinalSection
+|   |       CtaFinalItech.module.css
+|   |       CtaFinalItech.tsx
+|   |       CtaFinalSobre.module.css
+|   |       CtaFinalSobre.tsx
+|   |       
+|   +---Footer
+|   |       FooterItech.module.css
+|   |       FooterItech.tsx
+|   |       FooterSobre.module.css
+|   |       FooterSobre.tsx
+|   |       
+|   +---hero
+|   |       HeroHeaderVariante1.tsx
+|   |       HeroHeaderVariante2.tsx
+|   |       
+|   +---NosOffres
+|   |       NosOffresItech.module.css
+|   |       NosOffresItech.tsx
+|   |       NosOffresSobre.module.css
+|   |       NosOffresSobre.tsx
+|   |       
+|   +---RisquesSection
+|   |       RisquesItech.module.css
+|   |       RisquesItech.tsx
+|   |       RisquesSobre.module.css
+|   |       RisquesSobre.tsx
+|   |       
+|   \---SuccesFee
+|           SuccesFee.module.css
+|           SuccesFee.tsx
+|           SuccesFee1.tsx
+|           
++---services
+|       DataService.ts
+|       SyncService.ts
+|       
++---styles
+|       calculateur-ia.css
+|       calculateur-ia1.css
+|       globals.css
+|       
+\---types
+        dossier.ts
+        

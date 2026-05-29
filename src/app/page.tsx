@@ -3,7 +3,7 @@ import HeroHeaderVariante2 from "@components/hero/HeroHeaderVariante2";
 import CalculateurIA from "@components/calculateur/CalculateurIA";
 import CalculateurIA1 from "@components/calculateur/CalculateurIA1";
 import "@styles/calculateur-ia.css";
-import "../styles/calculateur-ia1.css";
+import "@styles/calculateur-ia1.css";
 import NosOffresSobre from "@components/NosOffres/NosOffresSobre";
 import NosOffresItech from "@components/NosOffres/NosOffresItech";
 import SuccesFee from "@components/SuccesFee/SuccesFee";
@@ -21,11 +21,12 @@ import CtaFinalItech from "@components/CtaFinalSection/CtaFinalItech";
 import FooterSobre from "@components/Footer/FooterSobre";
 import FooterItech from "@components/Footer/FooterItech";
 
-// Tape explicitement la constante pour autoriser 1 ou 2
-const VARIANTE: 1 | 2 = 2; // 2 = i-tech, 1 = sobre 
+// Configuration de la variante (1 = Sobre, 2 = Itech)
+const VARIANTE: 1 | 2 = 1;
 
+// Métadonnées avec typage explicite
 export const metadata = {
-  title: "iSkyce Industrie 5.0 – IA & Data pour l’industrie",
+  title: "iSkyce Industrie 5.0 – IA & Data pour l'industrie",
   description:
     "Boostez votre performance industrielle grâce à l'IA avancé : +15% de rendement, -20% de coûts, 40% de réduction CO₂. Diagnostic IA personnalisé, résultats en 72h.",
   openGraph: {
@@ -42,26 +43,32 @@ export const metadata = {
     ],
     siteName: "iSkyce Industrie 5.0",
   },
-};
+} as const;
 
+// Composant principal
 export default function Home() {
-  // Le choix dynamique reste simple :
+  const isSobre = VARIANTE === 1;
+
   return (
     <>
-      {/* Choix du header selon variante */}
-      {VARIANTE === 1 ? <HeroHeaderVariante1 /> : <HeroHeaderVariante2 />}
+      {/* Header selon variante */}
+      {isSobre ? <HeroHeaderVariante1 /> : <HeroHeaderVariante2 />}
 
       {/* Contenu principal */}
       <main className="bg-white">
-        {VARIANTE === 1 ? <CalculateurIA /> : <CalculateurIA1 />}
-        {VARIANTE === 1 ? <NosOffresSobre /> : <NosOffresItech />}
-        {VARIANTE === 1 ? <SuccesFee /> : <SuccesFee1 />}
-        {VARIANTE === 1 ? <ClientOnlyOptionDataPlusSobre key="sobre" /> : <OptionDataPlusItech />}
-        {VARIANTE === 1 ? <BeneficesSobre /> : <BeneficesItech />}
-        {VARIANTE === 1 ? <RisquesSobre /> : <RisquesItech />}
-        {VARIANTE === 1 ? <ConfidentialiteSobre /> : <ConfidentialiteItech />}
-        {VARIANTE === 1 ? <CtaFinalSobre /> : <CtaFinalItech />}
-        {VARIANTE === 1 ? <FooterSobre /> : <FooterItech />}
+        {isSobre ? <CalculateurIA /> : <CalculateurIA1 />}
+        {isSobre ? <NosOffresSobre /> : <NosOffresItech />}
+        {isSobre ? <SuccesFee /> : <SuccesFee1 />}
+        {isSobre ? (
+          <ClientOnlyOptionDataPlusSobre key="sobre" />
+        ) : (
+          <OptionDataPlusItech />
+        )}
+        {isSobre ? <BeneficesSobre /> : <BeneficesItech />}
+        {isSobre ? <RisquesSobre /> : <RisquesItech />}
+        {isSobre ? <ConfidentialiteSobre /> : <ConfidentialiteItech />}
+        {isSobre ? <CtaFinalSobre /> : <CtaFinalItech />}
+        {isSobre ? <FooterSobre /> : <FooterItech />}
       </main>
     </>
   );
